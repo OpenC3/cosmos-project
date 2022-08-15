@@ -19,9 +19,15 @@ entrypoints:
     http:
       tls:
         domains:
-          - main: "localhost" # Update with your domain
+          - main: "mydomain.com" # Update with your domain
 http:
   middlewares:
+    # Make keycloak think we are always proxying https
+    sslHeaders:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+          X-Forwarded-Port: "443"
     # Removes the first part of the url before passing onto the service
     # ie. /openc3-api/api becomes /api
     removeFirst:
@@ -43,6 +49,8 @@ http:
     # Route to kecloak
     keycloak-router:
       rule: PathPrefix(`/auth`)
+      middlewares:
+        - "sslHeaders"
       service: service-keycloak
       priority: 8
       tls: {}

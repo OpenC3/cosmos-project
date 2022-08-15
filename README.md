@@ -13,8 +13,9 @@ place for any project who wants to use OpenC3 Enterprise Edition, but not develo
 3. Start OpenC3
     1. On Linux/Mac: ./openc3.sh run
     2. On Windows: openc3.bat run
-4. After approximately 2 minutes, open a web browser to http://localhost:2900
+4. After approximately 2 minutes, open a web browser to http://localhost:2900/auth/
     1. If you run "docker ps", you can watch until the openc3-enterprise-init container completes, at which point the system should be fully configured and ready to use.
+5. IMPORTANT: You must configure Keycloak before accessing http://localhost:2900 to get to the main OpenC3 app will work (you'll just see a white page until you do this) - Please follow our Keycloak documentation
 
 ## Run without the Demo project
 
@@ -64,17 +65,14 @@ Important: Before exposing OpenC3 to any network, even a local network, make sur
     2. Comment out this openc3-enterprise-traefik line: ```- "127.0.0.1:2943:443"```
     3. Uncomment out this openc3-enterprise-traefik line: ```- "80:80"```
     4. Uncomment out this openc3-enterprise-traefik line: ```- "443:443"```
-5. If not, edit compose.yaml:
-    1. Remove 127.0.0.1 from this line: ```- "127.0.0.1:2900:80"```
-    2. Remove 127.0.0.1 from this line: ```- "127.0.0.1:2943:443"```
-6. Edit ./openc3-enterprise-traefik/traefik-ssl.yaml
-    1. Update line 14 to the first port number in step 4 or 5: to: ":443" # This should match port forwarding in your compose.yaml
+5. Edit ./openc3-enterprise-traefik/traefik-ssl.yaml
     2. Update line 22 to your domain: - main: "mydomain.com" # Update with your domain
-7. Start OpenC3
+6. Start OpenC3
     1. On Linux/Mac: ./openc3.sh run
     2. On Windows: openc3.bat run
-8. After approximately 2 minutes, open a web browser to ```https://<Your IP Address>``` (or ```https://<Your IP Address>:2943``` if you can't use standard ports)
+7. After approximately 2 minutes, open a web browser to https://mydomain.com/auth/
     1. If you run "docker ps", you can watch until the openc3-enterprise-init container completes, at which point the system should be fully configured and ready to use.
+8. IMPORTANT: You must configure Keycloak before accessing https://mydomain.com to get to the main OpenC3 app will work (you'll just see a white page until you do this) - Please follow our Keycloak documentation
 
 ### Open to the network using a global certificate from Let's Encrypt
 
@@ -92,8 +90,9 @@ Warning: These directions only work when exposing OpenC3 to the internet.  Make 
 4. Start OpenC3
     1. On Linux/Mac: ./openc3.sh run
     2. On Windows: openc3.bat run
-5. After approximately a few minutes, open a web browser to ```https://<Your Domain Name>```
+5. After approximately 2 minutes, open a web browser to https://mydomain.com/auth/
     1. If you run "docker ps", you can watch until the openc3-enterprise-init container completes, at which point the system should be fully configured and ready to use.
+6. IMPORTANT: You must configure Keycloak before accessing https://mydomain.com to get to the main OpenC3 app will work (you'll just see a white page until you do this) - Please follow our Keycloak documentation
 
 ### Open to the network insecurely using http
 
@@ -102,9 +101,10 @@ Warning: This is not recommended except for temporary testing on a local network
 1. Edit compose.yaml
     1. Comment out this openc3-enterprise-traefik line: ```- "./openc3-enterprise-traefik/traefik.yaml:/etc/traefik/traefik.yaml:z"```
     2. Uncomment this openc3-enterprise-traefik line: ```- "./openc3-enterprise-traefik/traefik-allow-http.yaml:/etc/traefik/traefik.yaml"```
-    3. Remove 127.0.0.1 from this line: ```- "127.0.0.1:2900:80"```
+    3. Remove 127.0.0.1: from this line and replace 2900 with 80: ```- "127.0.0.1:2900:80"```
 2. Start OpenC3
     1. On Linux/Mac: ./openc3.sh run
     2. On Windows: openc3.bat run
-3. After approximately 2 minutes, open a web browser to ```https://<Your IP Address>:2900```
+3. After approximately 2 minutes, open a web browser to http://mydomain.com/auth/
     1. If you run "docker ps", you can watch until the openc3-enterprise-init container completes, at which point the system should be fully configured and ready to use.
+4. IMPORTANT: You must configure Keycloak before accessing https://mydomain.com to get to the main OpenC3 app will work (you'll just see a white page until you do this) - Please follow our Keycloak documentation

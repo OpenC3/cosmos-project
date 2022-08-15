@@ -175,8 +175,6 @@ services:
       - "./cacert.pem:/devel/cacert.pem:z"
     depends_on:
       - openc3-postgresql
-    ports:
-      - "127.0.0.1:2950:8080"
 
 volumes:
   openc3-redis-v: {}
