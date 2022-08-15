@@ -66,10 +66,13 @@ Important: Before exposing OpenC3 to any network, even a local network, make sur
 5. If not, edit compose.yaml:
     1. Remove 127.0.0.1 from this line: ```- "127.0.0.1:2900:80"```
     2. Remove 127.0.0.1 from this line: ```- "127.0.0.1:2943:443"```
-6. Start OpenC3
+6. Edit ./openc3-traefik/traefik-ssl.yaml
+    1. Update line 14 to the first port number in step 4 or 5: to: ":443" # This should match port forwarding in your compose.yaml
+    2. Update line 22 to your domain: - main: "mydomain.com" # Update with your domain
+7. Start OpenC3
     1. On Linux/Mac: ./openc3.sh run
     2. On Windows: openc3.bat run
-7. After approximately 2 minutes, open a web browser to https://<Your IP Address> (or https://<Your IP Address>:2943 if you can't use standard ports)
+8. After approximately 2 minutes, open a web browser to https://<Your IP Address> (or https://<Your IP Address>:2943 if you can't use standard ports)
     1. If you run "docker ps", you can watch until the openc3-init container completes, at which point the system should be fully configured and ready to use.
 
 ### Open to the network using a global certificate from Let's Encrypt
