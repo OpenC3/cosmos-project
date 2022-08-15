@@ -72,7 +72,7 @@ Important: Before exposing OpenC3 to any network, even a local network, make sur
 7. Start OpenC3
     1. On Linux/Mac: ./openc3.sh run
     2. On Windows: openc3.bat run
-8. After approximately 2 minutes, open a web browser to https://<Your IP Address> (or https://<Your IP Address>:2943 if you can't use standard ports)
+8. After approximately 2 minutes, open a web browser to ```https://<Your IP Address>``` (or ```https://<Your IP Address>:2943``` if you can't use standard ports)
     1. If you run "docker ps", you can watch until the openc3-init container completes, at which point the system should be fully configured and ready to use.
 
 ### Open to the network using a global certificate from Let's Encrypt
@@ -91,7 +91,7 @@ Warning: These directions only work when exposing OpenC3 to the internet.  Make 
 4. Start OpenC3
     1. On Linux/Mac: ./openc3.sh run
     2. On Windows: openc3.bat run
-5. After approximately a few minutes, open a web browser to https://<Your Domain Name>
+5. After approximately a few minutes, open a web browser to ```https://<Your Domain Name>```
     1. If you run "docker ps", you can watch until the openc3-init container completes, at which point the system should be fully configured and ready to use.
 
 ### Open to the network insecurely using http
@@ -105,5 +105,5 @@ Warning: This is not recommended except for temporary testing on a local network
 2. Start OpenC3
     1. On Linux/Mac: ./openc3.sh run
     2. On Windows: openc3.bat run
-3. After approximately 2 minutes, open a web browser to https://<Your IP Address>:2900
+3. After approximately 2 minutes, open a web browser to ```https://<Your IP Address>:2900```
     1. If you run "docker ps", you can watch until the openc3-init container completes, at which point the system should be fully configured and ready to use.
