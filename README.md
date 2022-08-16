@@ -5,6 +5,23 @@ It includes the necessary scripts to run OpenC3 Enterprise Edition, but does not
 running released containers rather than building containers from source.  This is the recommended starting
 place for any project who wants to use OpenC3 Enterprise Edition, but not develop the core system.
 
+## Prerequisites
+
+Installing OpenC3 Enterprise is very similar to installing OpenC3. The Enterprise containers are stored here as [Packages](https://github.com/orgs/OpenC3/packages?repo_name=openc3-enterprise) rather than on Docker Hub. Follow these instructions to pull and run the containers:
+
+1. Create a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token). Make sure to click the "repo" box and the "read:packages" box.
+
+1. Save the PAT as an environment variable. You might want to put this in your .bashrc or .zshrc on unix platforms.  Or just an environment variable on Windows.
+
+        export GITHUB_PAT=YOUR_TOKEN
+
+1. Authenticate to Github Packages registry
+
+        $ echo $GITHUB_PAT | docker login ghcr.io -u USERNAME --password-stdin
+        > Login Succeeded
+        
+1. Once you've seen "Login Succeeded", you should be good to go for all the scenarios below.
+
 ## Quick Start
 
 1. git clone https://github.com/openc3/openc3-enterprise-project.git openc3-myprojectname
