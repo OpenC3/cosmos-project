@@ -58,6 +58,7 @@ Important: Before exposing OpenC3 to any network, even a local network, make sur
     2. Uncomment this openc3-traefik line: ```- "./openc3-traefik/traefik-ssl.yaml:/etc/traefik/traefik.yaml"```
     3. Uncomment this openc3-traefik line: ```- "./openc3-traefik/cert.key:/etc/traefik/cert.key"```
     4. Uncomment this openc3-traefik line: ```- "./openc3-traefik/cert.crt:/etc/traefik/cert.crt"```
+    5. Edit the openc3-keycloak section and change KC_HOSTNAME to your domain and KC_HOSTNAME_PORT to -1
 4. If you are able to run as the standard browser ports 80/443, edit compose.yaml:
     1. Comment out this openc3-traefik line: ```- "127.0.0.1:2900:80"```
     2. Comment out this openc3-traefik line: ```- "127.0.0.1:2943:443"```
@@ -88,6 +89,7 @@ Warning: These directions only work when exposing OpenC3 to the internet.  Make 
     2. Comment out this openc3-traefik line: ```- "127.0.0.1:2943:443"```
     3. Uncomment out this openc3-traefik line: ```- "80:80"```
     4. Uncomment out this openc3-traefik line: ```- "443:443"```
+    5. Edit the openc3-keycloak section and change KC_HOSTNAME to your domain and KC_HOSTNAME_PORT to -1
 4. Start OpenC3
     1. On Linux/Mac: ./openc3.sh run
     2. On Windows: openc3.bat run
