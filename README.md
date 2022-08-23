@@ -19,7 +19,7 @@ Installing OpenC3 Enterprise is very similar to installing OpenC3. The Enterpris
 
         $ echo $GITHUB_PAT | docker login ghcr.io -u USERNAME --password-stdin
         > Login Succeeded
-        
+
 1. Once you've seen "Login Succeeded", you should be good to go for all the scenarios below.
 
 ## Quick Start
@@ -73,15 +73,16 @@ Important: Before exposing OpenC3 to any network, even a local network, make sur
 1. Copy your public SSL certicate to ./openc3-enterprise-traefik/cert.crt
 2. Copy your private SSL certicate to ./openc3-enterprise-traefik/cert.key
 3. Edit compose.yaml
-    1. Comment out this openc3-enterprise-traefik line: ```- "./openc3-enterprise-traefik/traefik.yaml:/etc/traefik/traefik.yaml:z"```
-    2. Uncomment this openc3-enterprise-traefik line: ```- "./openc3-enterprise-traefik/traefik-ssl.yaml:/etc/traefik/traefik.yaml"```
-    3. Uncomment this openc3-enterprise-traefik line: ```- "./openc3-enterprise-traefik/cert.key:/etc/traefik/cert.key"```
-    4. Uncomment this openc3-enterprise-traefik line: ```- "./openc3-enterprise-traefik/cert.crt:/etc/traefik/cert.crt"```
+    1. Comment out this openc3-traefik line: ```- "./openc3-enterprise-traefik/traefik.yaml:/etc/traefik/traefik.yaml:z"```
+    2. Uncomment this openc3-traefik line: ```- "./openc3-enterprise-traefik/traefik-ssl.yaml:/etc/traefik/traefik.yaml"```
+    3. Uncomment this openc3-traefik line: ```- "./openc3-enterprise-traefik/cert.key:/etc/traefik/cert.key"```
+    4. Uncomment this openc3-traefik line: ```- "./openc3-enterprise-traefik/cert.crt:/etc/traefik/cert.crt"```
 4. If you are able to run as the standard browser ports 80/443, edit compose.yaml:
-    1. Comment out this openc3-enterprise-traefik line: ```- "127.0.0.1:2900:80"```
-    2. Comment out this openc3-enterprise-traefik line: ```- "127.0.0.1:2943:443"```
-    3. Uncomment out this openc3-enterprise-traefik line: ```- "80:80"```
-    4. Uncomment out this openc3-enterprise-traefik line: ```- "443:443"```
+    1. Comment out this openc3-traefik line: ```- "127.0.0.1:2900:80"```
+    2. Comment out this openc3-traefik line: ```- "127.0.0.1:2943:443"```
+    3. Uncomment out this openc3-traefik line: ```- "80:80"```
+    4. Uncomment out this openc3-traefik line: ```- "443:443"```
+    5. Edit the openc3-keycloak section and change KC_HOSTNAME to your domain and KC_HOSTNAME_PORT to -1
 5. Edit ./openc3-enterprise-traefik/traefik-ssl.yaml
     2. Update line 22 to your domain: - main: "mydomain.com" # Update with your domain
 6. Start OpenC3
@@ -97,13 +98,14 @@ Warning: These directions only work when exposing OpenC3 to the internet.  Make 
 
 1. Make sure that your DNS settings are mapping your domain name to your server
 2. Edit compose.yaml
-    1. Comment out this openc3-enterprise-traefik line: ```- "./openc3-enterprise-traefik/traefik.yaml:/etc/traefik/traefik.yaml:z"```
-    2. Uncomment this openc3-enterprise-traefik line: ```- "./openc3-enterprise-traefik/traefik-letsencrypt.yaml:/etc/traefik/traefik.yaml"```
+    1. Comment out this openc3-traefik line: ```- "./openc3-enterprise-traefik/traefik.yaml:/etc/traefik/traefik.yaml:z"```
+    2. Uncomment this openc3-traefik line: ```- "./openc3-enterprise-traefik/traefik-letsencrypt.yaml:/etc/traefik/traefik.yaml"```
 3. Edit compose.yaml:
-    1. Comment out this openc3-enterprise-traefik line: ```- "127.0.0.1:2900:80"```
-    2. Comment out this openc3-enterprise-traefik line: ```- "127.0.0.1:2943:443"```
-    3. Uncomment out this openc3-enterprise-traefik line: ```- "80:80"```
-    4. Uncomment out this openc3-enterprise-traefik line: ```- "443:443"```
+    1. Comment out this openc3-traefik line: ```- "127.0.0.1:2900:80"```
+    2. Comment out this openc3-traefik line: ```- "127.0.0.1:2943:443"```
+    3. Uncomment out this openc3-traefik line: ```- "80:80"```
+    4. Uncomment out this openc3-traefik line: ```- "443:443"```
+    5. Edit the openc3-keycloak section and change KC_HOSTNAME to your domain and KC_HOSTNAME_PORT to -1
 4. Start OpenC3
     1. On Linux/Mac: ./openc3.sh run
     2. On Windows: openc3.bat run
@@ -116,12 +118,13 @@ Warning: These directions only work when exposing OpenC3 to the internet.  Make 
 Warning: This is not recommended except for temporary testing on a local network. This will send plain text passwords over the network!
 
 1. Edit compose.yaml
-    1. Comment out this openc3-enterprise-traefik line: ```- "./openc3-enterprise-traefik/traefik.yaml:/etc/traefik/traefik.yaml:z"```
-    2. Uncomment this openc3-enterprise-traefik line: ```- "./openc3-enterprise-traefik/traefik-allow-http.yaml:/etc/traefik/traefik.yaml"```
+    1. Comment out this openc3-traefik line: ```- "./openc3-enterprise-traefik/traefik.yaml:/etc/traefik/traefik.yaml:z"```
+    2. Uncomment this openc3-traefik line: ```- "./openc3-enterprise-traefik/traefik-allow-http.yaml:/etc/traefik/traefik.yaml"```
     3. Remove 127.0.0.1: from this line and replace 2900 with 80: ```- "127.0.0.1:2900:80"```
+    4. Edit the openc3-keycloak section and change KC_HOSTNAME_PORT to -1
 2. Start OpenC3
     1. On Linux/Mac: ./openc3.sh run
     2. On Windows: openc3.bat run
-3. After approximately 2 minutes, open a web browser to http://mydomain.com/auth/
+3. After approximately 2 minutes, open a web browser to http://localhost/auth/
     1. If you run "docker ps", you can watch until the openc3-enterprise-init container completes, at which point the system should be fully configured and ready to use.
-4. IMPORTANT: You must configure Keycloak before accessing https://mydomain.com to get to the main OpenC3 app will work (you'll just see a white page until you do this) - Please follow our Keycloak documentation
+4. IMPORTANT: You must configure Keycloak before accessing http://localhost to get to the main OpenC3 app will work (you'll just see a white page until you do this) - Please follow our Keycloak documentation
