@@ -24,6 +24,17 @@ if [ "$#" -eq 0 ]; then
   usage $0
 fi
 
+case "$(uname -s)" in
+   Darwin)
+     # Running on Mac OS X Host
+     export OPENC3_LOCAL_MODE_GROUP_ID=`stat -f '%g' plugins`
+     ;;
+   *)
+     # Running on Linux or Linux like Host
+     export OPENC3_LOCAL_MODE_GROUP_ID=`stat -c '%g' plugins`
+     ;;
+esac
+
 case $1 in
   cli )
     # Source the .env file to setup environment variables
@@ -45,6 +56,7 @@ case $1 in
     set +a
     ;;
   start )
+    chmod -R 775 plugins
     docker-compose -f compose.yaml up -d
     ;;
   stop )
@@ -54,6 +66,7 @@ case $1 in
     docker-compose -f compose.yaml down -t 30 -v
     ;;
   run )
+    chmod -R 775 plugins
     docker-compose -f compose.yaml up -d
     ;;
   util )
