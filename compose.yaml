@@ -25,11 +25,15 @@ services:
     volumes:
       - "openc3-minio-v:/data"
       - "./cacert.pem:/devel/cacert.pem:z"
-    command: ["server", "/data"]
+    command: server --address ":9000" --console-address ":9001" /data
     restart: "unless-stopped"
     environment:
       MINIO_ROOT_USER: "${OPENC3_MINIO_USERNAME}"
       MINIO_ROOT_PASSWORD: "${OPENC3_MINIO_PASSWORD}"
+      # Domain doesn't really matter but it's required. We really want the /minio path.
+      # This is handled by our traefik configuration via rule: PathPrefix(`/minio`)
+      # and forwarded on to the console at http://openc3-minio:9001
+      MINIO_BROWSER_REDIRECT_URL: "http://openc3.com/minio"
       SSL_CERT_FILE: "/devel/cacert.pem"
       CURL_CA_BUNDLE: "/devel/cacert.pem"
       REQUESTS_CA_BUNDLE: "/devel/cacert.pem"
@@ -70,10 +74,13 @@ services:
       - "openc3-minio"
     volumes:
       - "openc3-gems-v:/gems"
+      - "./plugins:/plugins:z"
       - "./cacert.pem:/devel/cacert.pem:z"
     environment:
       - "RAILS_ENV=production"
       - "GEM_HOME=/gems"
+    group_add:
+      - ${OPENC3_LOCAL_MODE_GROUP_ID}
     env_file:
       - ".env"
 
@@ -86,10 +93,13 @@ services:
       - "openc3-minio"
     volumes:
       - "openc3-gems-v:/gems:ro"
+      - "./plugins:/plugins:z"
       - "./cacert.pem:/devel/cacert.pem:z"
     environment:
       - "RAILS_ENV=production"
       - "GEM_HOME=/gems"
+    group_add:
+      - ${OPENC3_LOCAL_MODE_GROUP_ID}
     env_file:
       - ".env"
 
@@ -102,11 +112,14 @@ services:
       - "openc3-minio"
     volumes:
       - "openc3-gems-v:/gems:ro"
-      #- ./cacert.pem:/devel/cacert.pem
+      - "./plugins:/plugins:z"
+      - "./cacert.pem:/devel/cacert.pem:z"
       # Add access to the entire C drive on Windows
       # - "/c:/c"
     environment:
       - "GEM_HOME=/gems"
+    group_add:
+      - ${OPENC3_LOCAL_MODE_GROUP_ID}
     env_file:
       - ".env"
     extra_hosts:
@@ -117,11 +130,11 @@ services:
     volumes:
       - "./cacert.pem:/devel/cacert.pem:z"
       - "./openc3-traefik/traefik.yaml:/etc/traefik/traefik.yaml:z"
-      # - "./openc3-traefik/traefik-allow-http.yaml:/etc/traefik/traefik.yaml"
-      # - "./openc3-traefik/traefik-ssl.yaml:/etc/traefik/traefik.yaml"
-      # - "./openc3-traefik/traefik-letsencrypt.yaml:/etc/traefik/traefik.yaml"
-      # - "./openc3-traefik/cert.key:/etc/traefik/cert.key"
-      # - "./openc3-traefik/cert.crt:/etc/traefik/cert.crt"
+      # - "./openc3-traefik/traefik-allow-http.yaml:/etc/traefik/traefik.yaml:z"
+      # - "./openc3-traefik/traefik-ssl.yaml:/etc/traefik/traefik.yaml:z"
+      # - "./openc3-traefik/traefik-letsencrypt.yaml:/etc/traefik/traefik.yaml:z"
+      # - "./openc3-traefik/cert.key:/etc/traefik/cert.key:z"
+      # - "./openc3-traefik/cert.crt:/etc/traefik/cert.crt:z"
     ports:
       - "127.0.0.1:2900:80"
       - "127.0.0.1:2943:443"
@@ -148,9 +161,12 @@ services:
       - "openc3-minio"
     volumes:
       - "openc3-gems-v:/gems"
+      - "./plugins:/plugins:z"
       - "./cacert.pem:/devel/cacert.pem:z"
     environment:
       - "GEM_HOME=/gems"
+    group_add:
+      - ${OPENC3_LOCAL_MODE_GROUP_ID}
     env_file:
       - ".env"
 

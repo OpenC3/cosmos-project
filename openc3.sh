@@ -45,6 +45,7 @@ case $1 in
     set +a
     ;;
   start )
+    chmod -R 775 plugins
     docker-compose -f compose.yaml up -d
     ;;
   stop )
@@ -54,6 +55,7 @@ case $1 in
     docker-compose -f compose.yaml down -t 30 -v
     ;;
   run )
+    chmod -R 775 plugins
     docker-compose -f compose.yaml up -d
     ;;
   util )
