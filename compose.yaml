@@ -23,13 +23,13 @@ services:
   openc3-minio:
     image: "${OPENC3_ENTERPRISE_REGISTRY}/${OPENC3_ENTERPRISE_NAMESPACE}/openc3-enterprise-minio:${OPENC3_ENTERPRISE_TAG}"
     volumes:
-      - "openc3-minio-v:/data"
+      - "openc3-bucket-v:/data"
       - "./cacert.pem:/devel/cacert.pem:z"
     command: server --address ":9000" --console-address ":9001" /data
     restart: "unless-stopped"
     environment:
-      MINIO_ROOT_USER: "${OPENC3_MINIO_USERNAME}"
-      MINIO_ROOT_PASSWORD: "${OPENC3_MINIO_PASSWORD}"
+      MINIO_ROOT_USER: "${OPENC3_BUCKET_USERNAME}"
+      MINIO_ROOT_PASSWORD: "${OPENC3_BUCKET_PASSWORD}"
       # Domain doesn't really matter but it's required. We really want the /minio path.
       # This is handled by our traefik configuration via rule: PathPrefix(`/minio`)
       # and forwarded on to the console at http://openc3-minio:9001
@@ -124,6 +124,7 @@ services:
       - ".env"
     extra_hosts:
       - host.docker.internal:host-gateway
+    command: [ "ruby", "/openc3/lib/openc3/operators/microservice_operator.rb"]
 
   openc3-traefik:
     image: "${OPENC3_ENTERPRISE_REGISTRY}/${OPENC3_ENTERPRISE_NAMESPACE}/openc3-enterprise-traefik:${OPENC3_ENTERPRISE_TAG}"
@@ -174,11 +175,11 @@ services:
     image: "${OPENC3_ENTERPRISE_REGISTRY}/${OPENC3_ENTERPRISE_NAMESPACE}/openc3-enterprise-postgresql:${OPENC3_ENTERPRISE_TAG}"
     restart: "unless-stopped"
     environment:
-      - POSTGRESQL_USERNAME=keycloak
-      - POSTGRESQL_PASSWORD=keycloak123
-      - POSTGRESQL_DATABASE=keycloak
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=keycloak123
+      - POSTGRES_DB=keycloak
     volumes:
-      - "openc3-postgresql:/bitnami/postgresql"
+      - "openc3-postgresql:/var/lib/postgresql/data"
       - "./cacert.pem:/devel/cacert.pem:z"
 
   openc3-keycloak:
@@ -199,6 +200,6 @@ services:
 
 volumes:
   openc3-redis-v: {}
-  openc3-minio-v: {}
+  openc3-bucket-v: {}
   openc3-gems-v: {}
   openc3-postgresql: {}
