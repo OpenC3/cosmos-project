@@ -1,16 +1,16 @@
-# OpenC3 Project
+# OpenC3 COSMOS Project
 
-This git repo is used as a starting point for running and configuring OpenC3 for your specific project.
-It includes the necessary scripts to run OpenC3, but does not come with all the source code and relies on
+This git repo is used as a starting point for running and configuring OpenC3 COSMOS for your specific project.
+It includes the necessary scripts to run OpenC3 COSMOS, but does not come with all the source code and relies on
 running released containers rather than building containers from source.  This is the recommended starting
-place for any project who wants to use OpenC3, but not develop the core system.
+place for any project who wants to use OpenC3 COSMOS, but not develop the core system.
 
 ## Quick Start
 
-1. git clone https://github.com/openc3/openc3-project.git openc3-myprojectname
+1. git clone https://github.com/openc3/cosmos-project.git cosmos-myprojectname
 2. Edit .env and change OPENC3_TAG to the specific version you would like to run (ie. OPENC3_TAG=5.0.8)
     1. This will allow you to upgrade versions when you choose rather than following latest
-3. Start OpenC3
+3. Start OpenC3 COSMOS
     1. On Linux/Mac: ./openc3.sh run
     2. On Windows: openc3.bat run
 4. After approximately 2 minutes, open a web browser to http://localhost:2900
@@ -47,7 +47,7 @@ place for any project who wants to use OpenC3, but not develop the core system.
 
 ## Opening to the Network
 
-Important: Before exposing OpenC3 to any network, even a local network, make sure you have changed all default credentials and secrets!!!
+Important: Before exposing OpenC3 COSMOS to any network, even a local network, make sure you have changed all default credentials and secrets!!!
 
 ### Open to the network using https/SSL and your own certificates
 
@@ -106,4 +106,4 @@ Warning: This is not recommended except for temporary testing on a local network
     1. On Linux/Mac: ./openc3.sh run
     2. On Windows: openc3.bat run
 3. After approximately 2 minutes, open a web browser to ```https://<Your IP Address>:2900```
-    1. If you run "docker ps", you can watch until the openc3-init container completes, at which point the system should be fully configured and ready to use.
+    1. If you run "docker ps", you can watch until the openc3-cosmos-init container completes, at which point the system should be fully configured and ready to use.
