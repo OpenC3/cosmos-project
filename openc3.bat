@@ -46,6 +46,10 @@ GOTO usage
 GOTO :EOF
 
 :stop
+  docker-compose stop openc3-operator
+  docker-compose stop openc3-cosmos-script-runner-api
+  docker-compose stop openc3-cosmos-cmd-tlm-api
+  timeout /t 5 /nobreak
   docker-compose -f compose.yaml down -t 30
   @echo off
 GOTO :EOF
@@ -69,7 +73,7 @@ GOTO :EOF
 GOTO :EOF
 
 :usage
-  @echo Usage: %0 [start, stop, cleanup, build, run, deploy, util] 1>&2
+  @echo Usage: %0 [cli, cliroot, start, stop, cleanup, run, util] 1>&2
   @echo *  cli: run a cli command as the default user ('cli help' for more info) 1>&2
   @echo *  cliroot: run a cli command as the root user ('cli help' for more info) 1>&2
   @echo *  start: run the docker containers for openc3 1>&2
@@ -77,12 +81,5 @@ GOTO :EOF
   @echo *  cleanup: cleanup network and volumes for openc3 1>&2
   @echo *  run: run the prebuilt containers for openc3 1>&2
   @echo *  util: various helper commands 1>&2
-  @echo *    encode: encode a string to base64 1>&2
-  @echo *    hash: hash a string using SHA-256 1>&2
-  @echo *    load: load docker images from tar files 1>&2
-  @echo *    save: save docker images to tar files 1>&2
-  @echo *    zip: create openc3 zipfile 1>&2
-  @echo *    clean: remove node_modules, coverage, etc 1>&2
-  @echo *    hostsetup: configure host for redis 1>&2
 
 @echo on

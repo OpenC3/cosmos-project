@@ -3,7 +3,7 @@
 set -e
 
 usage() {
-  echo "Usage: $1 [cli, cliroot, start, stop, cleanup, build, deploy]" >&2
+  echo "Usage: $1 [cli, cliroot, start, stop, cleanup, run, util]" >&2
   echo "*  cli: run a cli command as the default user ('cli help' for more info)" 1>&2
   echo "*  cliroot: run a cli command as the root user ('cli help' for more info)" 1>&2
   echo "*  start: start the docker-compose openc3" >&2
@@ -11,12 +11,6 @@ usage() {
   echo "*  cleanup: cleanup network and volumes for openc3" >&2
   echo "*  run: run the prebuilt containers for openc3" >&2
   echo "*  util: various helper commands" >&2
-  echo "*    encode: encode a string to base64" >&2
-  echo "*    hash: hash a string using SHA-256" >&2
-  echo "*    save: save images to tar files" >&2
-  echo "*    load: load images to tar files" >&2
-  echo "*    clean: remove node_modules, coverage, etc" >&2
-  echo "*    hostsetup: setup host for redis" >&2
   exit 1
 }
 
@@ -60,6 +54,10 @@ case $1 in
     docker-compose -f compose.yaml up -d
     ;;
   stop )
+    docker-compose stop openc3-operator
+    docker-compose stop openc3-cosmos-script-runner-api
+    docker-compose stop openc3-cosmos-cmd-tlm-api
+    sleep 5
     docker-compose -f compose.yaml down -t 30
     ;;
   cleanup )

@@ -16,17 +16,28 @@
 # Modified by OpenC3, Inc.
 # All changes Copyright 2022, OpenC3, Inc.
 # All Rights Reserved
+#
+# This file may also be used under the terms of a commercial license 
+# if purchased from OpenC3, Inc.
 
 version: "3.5"
 
 services:
   openc3-minio:
     image: "${OPENC3_REGISTRY}/openc3inc/openc3-minio:${OPENC3_TAG}"
+    # Uncomment to run unit tests against the minio server
+    # ports:
+    #   - "127.0.0.1:9000:9000"
     volumes:
       - "openc3-minio-v:/data"
       - "./cacert.pem:/devel/cacert.pem:z"
     command: server --address ":9000" --console-address ":9001" /data
     restart: "unless-stopped"
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       MINIO_ROOT_USER: "${OPENC3_BUCKET_USERNAME}"
       MINIO_ROOT_PASSWORD: "${OPENC3_BUCKET_PASSWORD}"
@@ -46,6 +57,11 @@ services:
       - "./cacert.pem:/devel/cacert.pem:z"
       - "./openc3-redis/users.acl:/config/users.acl:z"
     restart: "unless-stopped"
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       SSL_CERT_FILE: "/devel/cacert.pem"
       CURL_CA_BUNDLE: "/devel/cacert.pem"
@@ -59,14 +75,19 @@ services:
       - "./openc3-redis/users.acl:/config/users.acl:z"
     restart: "unless-stopped"
     command: ["redis-server", "/config/redis_ephemeral.conf"]
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       SSL_CERT_FILE: "/devel/cacert.pem"
       CURL_CA_BUNDLE: "/devel/cacert.pem"
       REQUESTS_CA_BUNDLE: "/devel/cacert.pem"
       NODE_EXTRA_CA_CERTS: "/devel/cacert.pem"
 
-  openc3-cmd-tlm-api:
-    image: "${OPENC3_REGISTRY}/openc3inc/openc3-cmd-tlm-api:${OPENC3_TAG}"
+  openc3-cosmos-cmd-tlm-api:
+    image: "${OPENC3_REGISTRY}/openc3inc/openc3-cosmos-cmd-tlm-api:${OPENC3_TAG}"
     restart: "unless-stopped"
     depends_on:
       - "openc3-redis"
@@ -76,6 +97,11 @@ services:
       - "openc3-gems-v:/gems"
       - "./plugins:/plugins:z"
       - "./cacert.pem:/devel/cacert.pem:z"
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       - "RAILS_ENV=production"
       - "GEM_HOME=/gems"
@@ -84,8 +110,8 @@ services:
     env_file:
       - ".env"
 
-  openc3-script-runner-api:
-    image: "${OPENC3_REGISTRY}/openc3inc/openc3-script-runner-api:${OPENC3_TAG}"
+  openc3-cosmos-script-runner-api:
+    image: "${OPENC3_REGISTRY}/openc3inc/openc3-cosmos-script-runner-api:${OPENC3_TAG}"
     restart: "unless-stopped"
     depends_on:
       - "openc3-redis"
@@ -95,6 +121,11 @@ services:
       - "openc3-gems-v:/gems:ro"
       - "./plugins:/plugins:z"
       - "./cacert.pem:/devel/cacert.pem:z"
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       - "RAILS_ENV=production"
       - "GEM_HOME=/gems"
@@ -116,6 +147,11 @@ services:
       - "./cacert.pem:/devel/cacert.pem:z"
       # Add access to the entire C drive on Windows
       # - "/c:/c"
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       - "GEM_HOME=/gems"
     group_add:
@@ -145,14 +181,19 @@ services:
       - "openc3-redis"
       - "openc3-redis-ephemeral"
       - "openc3-minio"
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       SSL_CERT_FILE: "/devel/cacert.pem"
       CURL_CA_BUNDLE: "/devel/cacert.pem"
       REQUESTS_CA_BUNDLE: "/devel/cacert.pem"
       NODE_EXTRA_CA_CERTS: "/devel/cacert.pem"
 
-  openc3-init:
-    image: "${OPENC3_REGISTRY}/openc3inc/openc3-init:${OPENC3_TAG}"
+  openc3-cosmos-init:
+    image: "${OPENC3_REGISTRY}/openc3inc/openc3-cosmos-init:${OPENC3_TAG}"
     restart: on-failure
     depends_on:
       - "openc3-traefik"
@@ -163,6 +204,11 @@ services:
       - "openc3-gems-v:/gems"
       - "./plugins:/plugins:z"
       - "./cacert.pem:/devel/cacert.pem:z"
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       - "GEM_HOME=/gems"
     group_add:
