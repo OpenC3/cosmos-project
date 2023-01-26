@@ -17,13 +17,19 @@
 # All changes Copyright 2022, OpenC3, Inc.
 # All Rights Reserved
 #
-# This file may also be used under the terms of a commercial license 
+# This file may also be used under the terms of a commercial license
 # if purchased from OpenC3, Inc.
 
 version: "3.5"
 
+networks:
+  default:
+    name: openc3-cosmos-network
+
 services:
   openc3-minio:
+    # For rootless podman - Uncomment this user line
+    # user: 0:0
     image: "${OPENC3_REGISTRY}/openc3inc/openc3-minio:${OPENC3_TAG}"
     # Uncomment to run unit tests against the minio server
     # ports:
@@ -34,7 +40,7 @@ services:
     command: server --address ":9000" --console-address ":9001" /data
     restart: "unless-stopped"
     logging:
-      driver: "local"
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
@@ -51,6 +57,8 @@ services:
       NODE_EXTRA_CA_CERTS: "/devel/cacert.pem"
 
   openc3-redis:
+    # For rootless podman - Uncomment this user line
+    # user: 0:0
     image: "${OPENC3_REGISTRY}/openc3inc/openc3-redis:${OPENC3_TAG}"
     volumes:
       - "openc3-redis-v:/data"
@@ -58,7 +66,7 @@ services:
       - "./openc3-redis/users.acl:/config/users.acl:z"
     restart: "unless-stopped"
     logging:
-      driver: "local"
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
@@ -69,14 +77,16 @@ services:
       NODE_EXTRA_CA_CERTS: "/devel/cacert.pem"
 
   openc3-redis-ephemeral:
+    # For rootless podman - Uncomment this user line
+    # user: 0:0
     image: "${OPENC3_REGISTRY}/openc3inc/openc3-redis:${OPENC3_TAG}"
     volumes:
       - "./cacert.pem:/devel/cacert.pem:z"
       - "./openc3-redis/users.acl:/config/users.acl:z"
     restart: "unless-stopped"
-    command: ["redis-server", "/config/redis_ephemeral.conf"]
+    command: [ "redis-server", "/config/redis_ephemeral.conf" ]
     logging:
-      driver: "local"
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
@@ -87,6 +97,8 @@ services:
       NODE_EXTRA_CA_CERTS: "/devel/cacert.pem"
 
   openc3-cosmos-cmd-tlm-api:
+    # For rootless podman - Uncomment this user line
+    # user: 0:0
     image: "${OPENC3_REGISTRY}/openc3inc/openc3-cosmos-cmd-tlm-api:${OPENC3_TAG}"
     restart: "unless-stopped"
     depends_on:
@@ -98,7 +110,7 @@ services:
       - "./plugins:/plugins:z"
       - "./cacert.pem:/devel/cacert.pem:z"
     logging:
-      driver: "local"
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
@@ -111,6 +123,8 @@ services:
       - ".env"
 
   openc3-cosmos-script-runner-api:
+    # For rootless podman - Uncomment this user line
+    # user: 0:0
     image: "${OPENC3_REGISTRY}/openc3inc/openc3-cosmos-script-runner-api:${OPENC3_TAG}"
     restart: "unless-stopped"
     depends_on:
@@ -122,7 +136,7 @@ services:
       - "./plugins:/plugins:z"
       - "./cacert.pem:/devel/cacert.pem:z"
     logging:
-      driver: "local"
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
@@ -135,6 +149,8 @@ services:
       - ".env"
 
   openc3-operator:
+    # For rootless podman - Uncomment this user line
+    # user: 0:0
     image: "${OPENC3_REGISTRY}/openc3inc/openc3-operator:${OPENC3_TAG}"
     restart: "unless-stopped"
     depends_on:
@@ -148,7 +164,7 @@ services:
       # Add access to the entire C drive on Windows
       # - "/c:/c"
     logging:
-      driver: "local"
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
@@ -162,6 +178,8 @@ services:
       - host.docker.internal:host-gateway
 
   openc3-traefik:
+    # For rootless podman - Uncomment this user line
+    # user: 0:0
     image: "${OPENC3_REGISTRY}/openc3inc/openc3-traefik:${OPENC3_TAG}"
     volumes:
       - "./cacert.pem:/devel/cacert.pem:z"
@@ -182,7 +200,7 @@ services:
       - "openc3-redis-ephemeral"
       - "openc3-minio"
     logging:
-      driver: "local"
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
@@ -193,6 +211,8 @@ services:
       NODE_EXTRA_CA_CERTS: "/devel/cacert.pem"
 
   openc3-cosmos-init:
+    # For rootless podman - Uncomment this user line
+    # user: 0:0
     image: "${OPENC3_REGISTRY}/openc3inc/openc3-cosmos-init:${OPENC3_TAG}"
     restart: on-failure
     depends_on:
@@ -205,7 +225,7 @@ services:
       - "./plugins:/plugins:z"
       - "./cacert.pem:/devel/cacert.pem:z"
     logging:
-      driver: "local"
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
