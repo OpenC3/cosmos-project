@@ -11,12 +11,6 @@ usage() {
   echo "*  cleanup: cleanup network and volumes for openc3" >&2
   echo "*  run: run the prebuilt containers for openc3" >&2
   echo "*  util: various helper commands" >&2
-  echo "*    encode: encode a string to base64" >&2
-  echo "*    hash: hash a string using SHA-256" >&2
-  echo "*    save: save images to tar files" >&2
-  echo "*    load: load images to tar files" >&2
-  echo "*    clean: remove node_modules, coverage, etc" >&2
-  echo "*    hostsetup: setup host for redis" >&2
   exit 1
 }
 
@@ -45,14 +39,14 @@ case $1 in
     # This allows tools running in the container to have a consistent path to the current working directory.
     # Run the command "ruby /openc3/bin/openc3cli" with all parameters starting at 2 since the first is 'openc3'
     args=`echo $@ | { read _ args; echo $args; }`
-    docker run --rm -v `pwd`:/openc3/local:z -w /openc3/local $OPENC3_ENTERPRISE_REGISTRY/openc3/openc3-enterprise-operator:$OPENC3_TAG ruby /openc3/bin/openc3cli $args
+    docker run --rm --env-file "$(dirname -- "$0")/.env" -v `pwd`:/openc3/local:z -w /openc3/local $OPENC3_ENTERPRISE_REGISTRY/openc3/openc3-enterprise-operator:$OPENC3_ENTERPRISE_TAG ruby /openc3/bin/openc3cli $args
     set +a
     ;;
   cliroot )
     set -a
     . "$(dirname -- "$0")/.env"
     args=`echo $@ | { read _ args; echo $args; }`
-    docker run --rm --user=root -v `pwd`:/openc3/local:z -w /openc3/local $OPENC3_ENTERPRISE_REGISTRY/openc3/openc3-enterprise-operator:$OPENC3_TAG ruby /openc3/bin/openc3cli $args
+    docker run --rm --env-file "$(dirname -- "$0")/.env" --user=root -v `pwd`:/openc3/local:z -w /openc3/local $OPENC3_ENTERPRISE_REGISTRY/openc3/openc3-enterprise-operator:$OPENC3_ENTERPRISE_TAG ruby /openc3/bin/openc3cli $args
     set +a
     ;;
   start )
@@ -76,7 +70,7 @@ case $1 in
     docker-compose -f compose.yaml up -d
     ;;
   util )
-    scripts/linux/openc3_util.sh $2 $3
+    scripts/linux/openc3_util.sh "${@:2}"
     ;;
   * )
     usage $0

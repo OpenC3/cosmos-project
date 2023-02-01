@@ -121,6 +121,25 @@ services:
     env_file:
       - ".env"
 
+  openc3-metrics:
+    image: "${OPENC3_ENTERPRISE_REGISTRY}/${OPENC3_ENTERPRISE_NAMESPACE}/openc3-enterprise-metrics:${OPENC3_ENTERPRISE_TAG}"
+    restart: "unless-stopped"
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - "openc3-redis-ephemeral"
+    volumes:
+      - "./cacert.pem:/devel/cacert.pem:z"
+    environment:
+      - "RAILS_ENV=production"
+    group_add:
+      - ${OPENC3_LOCAL_MODE_GROUP_ID}
+    env_file:
+      - ".env"
+
   openc3-operator:
     image: "${OPENC3_ENTERPRISE_REGISTRY}/${OPENC3_ENTERPRISE_NAMESPACE}/openc3-enterprise-operator:${OPENC3_ENTERPRISE_TAG}"
     restart: "unless-stopped"

@@ -27,6 +27,7 @@ saveTar() {
 
   set -x
   docker pull $repo/$namespace/openc3-enterprise-gem:$tag
+  docker pull $repo/$namespace/openc3-enterprise-metrics:$tag
   docker pull $repo/$namespace/openc3-enterprise-operator:$tag
   docker pull $repo/$namespace/openc3-cosmos-enterprise-cmd-tlm-api:$tag
   docker pull $repo/$namespace/openc3-cosmos-enterprise-script-runner-api:$tag
@@ -39,6 +40,7 @@ saveTar() {
   docker pull $repo/$namespace/openc3-enterprise-nfs:$tag
 
   docker save $repo/$namespace/openc3-enterprise-gem:$tag -o tmp/openc3-enterprise-gem-$tag.tar
+  docker save $repo/$namespace/openc3-enterprise-metrics:$tag -o tmp/openc3-enterprise-metrics-$tag.tar
   docker save $repo/$namespace/openc3-enterprise-operator:$tag -o tmp/openc3-enterprise-operator-$tag.tar
   docker save $repo/$namespace/openc3-cosmos-enterprise-cmd-tlm-api:$tag -o tmp/openc3-cosmos-enterprise-cmd-tlm-api-$tag.tar
   docker save $repo/$namespace/openc3-cosmos-enterprise-script-runner-api:$tag -o tmp/openc3-cosmos-enterprise-script-runner-api-$tag.tar
@@ -60,6 +62,7 @@ loadTar() {
   fi
   set -x
   docker load -i tmp/openc3-enterprise-gem-$tag.tar
+  docker load -i tmp/openc3-enterprise-metrics-$tag.tar
   docker load -i tmp/openc3-enterprise-operator-$tag.tar
   docker load -i tmp/openc3-cosmos-enterprise-cmd-tlm-api-$tag.tar
   docker load -i tmp/openc3-cosmos-enterprise-script-runner-api-$tag.tar
@@ -96,6 +99,7 @@ tag() {
 
   set -x
   docker tag $repo1/$namespace1/openc3-enterprise-gem:$tag1 $repo2/$namespace2/openc3-enterprise-gem:$tag2
+  docker tag $repo1/$namespace1/openc3-enterprise-metrics:$tag1 $repo2/$namespace2/openc3-enterprise-metrics:$tag2
   docker tag $repo1/$namespace1/openc3-enterprise-operator:$tag1 $repo2/$namespace2/openc3-enterprise-operator:$tag2
   docker tag $repo1/$namespace1/openc3-cosmos-enterprise-cmd-tlm-api:$tag1 $repo2/$namespace2/openc3-cosmos-enterprise-cmd-tlm-api:$tag2
   docker tag $repo1/$namespace1/openc3-cosmos-enterprise-script-runner-api:$tag1 $repo2/$namespace2/openc3-cosmos-enterprise-script-runner-api:$tag2
@@ -121,6 +125,7 @@ push() {
 
   set -x
   docker push $repo/$namespace/openc3-enterprise-gem:$tag
+  docker push $repo/$namespace/openc3-enterprise-metrics:$tag
   docker push $repo/$namespace/openc3-enterprise-operator:$tag
   docker push $repo/$namespace/openc3-cosmos-enterprise-cmd-tlm-api:$tag
   docker push $repo/$namespace/openc3-cosmos-enterprise-script-runner-api:$tag
