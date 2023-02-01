@@ -45,14 +45,14 @@ case $1 in
     # This allows tools running in the container to have a consistent path to the current working directory.
     # Run the command "ruby /openc3/bin/openc3cli" with all parameters starting at 2 since the first is 'openc3'
     args=`echo $@ | { read _ args; echo $args; }`
-    docker run --rm --env-file "$(dirname -- "$0")/.env" -v `pwd`:/openc3/local -w /openc3/local openc3/openc3-enterprise-operator:$OPENC3_ENTERPRISE_TAG ruby /openc3/bin/openc3cli $args
+    docker run --rm -v `pwd`:/openc3/local -w /openc3/local openc3/openc3-enterprise-operator:$OPENC3_TAG ruby /openc3/bin/openc3cli $args
     set +a
     ;;
   cliroot )
     set -a
     . "$(dirname -- "$0")/.env"
     args=`echo $@ | { read _ args; echo $args; }`
-    docker run --rm --env-file "$(dirname -- "$0")/.env" --user=root -v `pwd`:/openc3/local -w /openc3/local openc3/openc3-enterprise-operator:$OPENC3_ENTERPRISE_TAG ruby /openc3/bin/openc3cli $args
+    docker run --rm --user=root -v `pwd`:/openc3/local -w /openc3/local openc3/openc3-enterprise-operator:$OPENC3_TAG ruby /openc3/bin/openc3cli $args
     set +a
     ;;
   start )
@@ -60,14 +60,16 @@ case $1 in
     docker-compose -f compose.yaml up -d
     ;;
   stop )
-    docker-compose stop openc3-operator
-    docker-compose stop openc3-cosmos-script-runner-api
-    docker-compose stop openc3-cosmos-cmd-tlm-api
-    sleep 5
     docker-compose -f compose.yaml down -t 30
     ;;
   cleanup )
-    docker-compose -f compose.yaml down -t 30 -v
+    echo "Are you sure? Cleanup removes ALL docker volumes and all COSMOS data! (1-Yes / 2-No)"
+    select yn in "Yes" "No"; do
+      case $yn in
+        Yes ) docker-compose -f compose.yaml down -t 30 -v; break;;
+        No ) exit;;
+      esac
+    done
     ;;
   run )
     chmod -R 775 plugins

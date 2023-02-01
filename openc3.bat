@@ -12,14 +12,14 @@ if "%1" == "cli" (
   REM mapped as volume (-v) /openc3/local and container working directory (-w) also set to /openc3/local.
   REM This allows tools running in the container to have a consistent path to the current working directory.
   REM Run the command "ruby /openc3/bin/openc3" with all parameters ignoring the first.
-  docker run --rm --env-file %~dp0.env -v %cd%:/openc3/local -w /openc3/local openc3/openc3-enterprise-operator:!OPENC3_ENTERPRISE_TAG! ruby /openc3/bin/openc3cli !params!
+  docker run --rm -v %cd%:/openc3/local -w /openc3/local openc3/openc3-enterprise-operator:!OPENC3_TAG! ruby /openc3/bin/openc3cli !params!
   GOTO :EOF
 )
 if "%1" == "cliroot" (
   FOR /F "tokens=*" %%i in (%~dp0.env) do SET %%i
   set params=%*
   call set params=%%params:*%1=%%
-  docker run --rm --env-file %~dp0.env --user=root -v %cd%:/openc3/local -w /openc3/local openc3/openc3-enterprise-operator:!OPENC3_ENTERPRISE_TAG! ruby /openc3/bin/openc3cli !params!
+  docker run --rm --user=root -v %cd%:/openc3/local -w /openc3/local openc3/openc3-enterprise-operator:!OPENC3_TAG! ruby /openc3/bin/openc3cli !params!
   GOTO :EOF
 )
 if "%1" == "start" (
@@ -46,15 +46,17 @@ GOTO usage
 GOTO :EOF
 
 :stop
-  docker-compose stop openc3-operator
-  docker-compose stop openc3-cosmos-script-runner-api
-  docker-compose stop openc3-cosmos-cmd-tlm-api
-  timeout /t 5 /nobreak
   docker-compose -f compose.yaml down -t 30
   @echo off
 GOTO :EOF
 
 :cleanup
+  set /P c=Are you sure? Cleanup removes ALL docker volumes and all COSMOS data! [Y/N]?
+  if /I "%c%" EQU "Y" goto :cleanup_y
+  if /I "%c%" EQU "N" goto :EOF
+  goto :cleanup
+
+:cleanup_y
   docker-compose -f compose.yaml down -t 30 -v
   @echo off
 GOTO :EOF
