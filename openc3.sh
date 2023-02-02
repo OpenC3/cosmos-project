@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
 set -e
 
@@ -18,16 +18,8 @@ if [ "$#" -eq 0 ]; then
   usage $0
 fi
 
-case "$(uname -s)" in
-   Darwin)
-     # Running on Mac OS X Host
-     export OPENC3_LOCAL_MODE_GROUP_ID=`stat -f '%g' plugins`
-     ;;
-   *)
-     # Running on Linux or Linux like Host
-     export OPENC3_LOCAL_MODE_GROUP_ID=`stat -c '%g' plugins`
-     ;;
-esac
+export OPENC3_USER_ID=`id -u`
+export OPENC3_GROUP_ID=`id -g`
 
 case $1 in
   cli )
@@ -50,10 +42,14 @@ case $1 in
     set +a
     ;;
   start )
-    chmod -R 775 plugins
     docker-compose -f compose.yaml up -d
     ;;
   stop )
+    docker-compose stop openc3-operator
+    docker-compose stop openc3-cosmos-script-runner-api
+    docker-compose stop openc3-cosmos-cmd-tlm-api
+    docker-compose stop openc3-metrics
+    sleep 5
     docker-compose -f compose.yaml down -t 30
     ;;
   cleanup )
@@ -66,7 +62,6 @@ case $1 in
     done
     ;;
   run )
-    chmod -R 775 plugins
     docker-compose -f compose.yaml up -d
     ;;
   util )
