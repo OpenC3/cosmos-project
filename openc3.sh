@@ -53,13 +53,18 @@ case $1 in
     docker-compose -f compose.yaml down -t 30
     ;;
   cleanup )
-    echo "Are you sure? Cleanup removes ALL docker volumes and all COSMOS data! (1-Yes / 2-No)"
-    select yn in "Yes" "No"; do
-      case $yn in
-        Yes ) docker-compose -f compose.yaml down -t 30 -v; break;;
-        No ) exit;;
-      esac
-    done
+    if [ "$2" == "force" ]
+    then
+      docker-compose -f compose.yaml down -t 30 -v
+    else
+      echo "Are you sure? Cleanup removes ALL docker volumes and all COSMOS data! (1-Yes / 2-No)"
+      select yn in "Yes" "No"; do
+        case $yn in
+          Yes ) docker-compose -f compose.yaml down -t 30 -v; break;;
+          No ) exit;;
+        esac
+      done
+    fi
     ;;
   run )
     docker-compose -f compose.yaml up -d
