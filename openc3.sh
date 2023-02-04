@@ -31,7 +31,7 @@ case $1 in
     # This allows tools running in the container to have a consistent path to the current working directory.
     # Run the command "ruby /openc3/bin/openc3cli" with all parameters starting at 2 since the first is 'openc3'
     args=`echo $@ | { read _ args; echo $args; }`
-    docker run --rm --env-file "$(dirname -- "$0")/.env" -v `pwd`:/openc3/local:z -w /openc3/local $OPENC3_REGISTRY/openc3inc/openc3-operator:$OPENC3_TAG ruby /openc3/bin/openc3cli $args
+    docker run --rm --env-file "$(dirname -- "$0")/.env" --user=$OPENC3_USER_ID:$OPENC3_GROUP_ID -v `pwd`:/openc3/local:z -w /openc3/local $OPENC3_REGISTRY/openc3inc/openc3-operator:$OPENC3_TAG ruby /openc3/bin/openc3cli $args
     set +a
     ;;
   cliroot )
@@ -52,13 +52,18 @@ case $1 in
     docker-compose -f compose.yaml down -t 30
     ;;
   cleanup )
-    echo "Are you sure? Cleanup removes ALL docker volumes and all COSMOS data! (1-Yes / 2-No)"
-    select yn in "Yes" "No"; do
-      case $yn in
-        Yes ) docker-compose -f compose.yaml down -t 30 -v; break;;
-        No ) exit;;
-      esac
-    done
+    if [ "$2" == "force" ]
+    then
+      docker-compose -f compose.yaml down -t 30 -v
+    else
+      echo "Are you sure? Cleanup removes ALL docker volumes and all COSMOS data! (1-Yes / 2-No)"
+      select yn in "Yes" "No"; do
+        case $yn in
+          Yes ) docker-compose -f compose.yaml down -t 30 -v; break;;
+          No ) exit;;
+        esac
+      done
+    fi
     ;;
   run )
     docker-compose -f compose.yaml up -d
