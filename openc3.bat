@@ -12,14 +12,14 @@ if "%1" == "cli" (
   REM mapped as volume (-v) /openc3/local and container working directory (-w) also set to /openc3/local.
   REM This allows tools running in the container to have a consistent path to the current working directory.
   REM Run the command "ruby /openc3/bin/openc3" with all parameters ignoring the first.
-  docker run --rm -v %cd%:/openc3/local -w /openc3/local !OPENC3_ENTERPRISE_REGISTRY!/openc3/openc3-enterprise-operator:!OPENC3_TAG! ruby /openc3/bin/openc3cli !params!
+  docker run --rm --env-file %~dp0.env -v %cd%:/openc3/local -w /openc3/local !OPENC3_ENTERPRISE_REGISTRY!/openc3/openc3-enterprise-operator:!OPENC3_ENTERPRISE_TAG! ruby /openc3/bin/openc3cli !params!
   GOTO :EOF
 )
 if "%1" == "cliroot" (
   FOR /F "tokens=*" %%i in (%~dp0.env) do SET %%i
   set params=%*
   call set params=%%params:*%1=%%
-  docker run --rm --user=root -v %cd%:/openc3/local -w /openc3/local !OPENC3_ENTERPRISE_REGISTRY!/openc3/openc3-enterprise-operator:!OPENC3_TAG! ruby /openc3/bin/openc3cli !params!
+  docker run --rm --env-file %~dp0.env --user=root -v %cd%:/openc3/local -w /openc3/local !OPENC3_ENTERPRISE_REGISTRY!/openc3/openc3-enterprise-operator:!OPENC3_ENTERPRISE_TAG! ruby /openc3/bin/openc3cli !params!
   GOTO :EOF
 )
 if "%1" == "start" (
@@ -46,15 +46,24 @@ GOTO usage
 GOTO :EOF
 
 :stop
+  docker-compose stop openc3-operator
+  docker-compose stop openc3-cosmos-script-runner-api
+  docker-compose stop openc3-cosmos-cmd-tlm-api
+  docker-compose stop openc3-metrics
+  timeout /t 5 /nobreak
   docker-compose -f compose.yaml down -t 30
   @echo off
 GOTO :EOF
 
 :cleanup
-  set /P c=Are you sure? Cleanup removes ALL docker volumes and all COSMOS data! [Y/N]?
-  if /I "%c%" EQU "Y" goto :cleanup_y
-  if /I "%c%" EQU "N" goto :EOF
-  goto :cleanup
+  if "%2" == "force" (
+    goto :cleanup_y
+  ) else (
+    set /P c=Are you sure? Cleanup removes ALL docker volumes and all COSMOS data! [Y/N]?
+    if /I "!c!" EQU "Y" goto :cleanup_y
+    if /I "!c!" EQU "N" goto :EOF
+    goto :cleanup
+  )
 
 :cleanup_y
   docker-compose -f compose.yaml down -t 30 -v
@@ -83,12 +92,5 @@ GOTO :EOF
   @echo *  cleanup: cleanup network and volumes for openc3 1>&2
   @echo *  run: run the prebuilt containers for openc3 1>&2
   @echo *  util: various helper commands 1>&2
-  @echo *    encode: encode a string to base64 1>&2
-  @echo *    hash: hash a string using SHA-256 1>&2
-  @echo *    load: load docker images from tar files 1>&2
-  @echo *    save: save docker images to tar files 1>&2
-  @echo *    zip: create openc3 zipfile 1>&2
-  @echo *    clean: remove node_modules, coverage, etc 1>&2
-  @echo *    hostsetup: configure host for redis 1>&2
 
 @echo on

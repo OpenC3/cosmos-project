@@ -23,7 +23,12 @@ http:
         replacement: "/tools/base/$1"
   routers:
     # Note: Priorities control router check order with highest priority evaluated first
-    # Route to kecloak
+    # Route to metrics
+    metrics-router:
+      rule: PathPrefix(`/metrics`)
+      service: service-metrics
+      priority: 9
+    # Route to keycloak
     keycloak-router:
       rule: PathPrefix(`/auth`)
       service: service-keycloak
@@ -81,6 +86,12 @@ http:
       service: service-minio
       priority: 1
   services:
+    # The Metrics service
+    service-metrics:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+          - url: "http://openc3-metrics:2903"
     # The Keycloak service
     service-keycloak:
       loadBalancer:
