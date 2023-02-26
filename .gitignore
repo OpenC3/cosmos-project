@@ -2,13 +2,11 @@
 *.def
 *.so
 *.bundle
-*.gem
 Makefile
 *Gemfile.lock
 .yardoc
 .DS_Store
 desktop.ini
-cacert.pem
 .idea
 .rubocop-http*
 .nyc_output
