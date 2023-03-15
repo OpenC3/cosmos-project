@@ -41,17 +41,17 @@ if "%1" == "util" (
 GOTO usage
 
 :startup
-  docker-compose -f compose.yaml up -d
+  docker compose -f compose.yaml up -d
   @echo off
 GOTO :EOF
 
 :stop
-  docker-compose stop openc3-operator
-  docker-compose stop openc3-cosmos-script-runner-api
-  docker-compose stop openc3-cosmos-cmd-tlm-api
-  docker-compose stop openc3-metrics
+  docker compose stop openc3-operator
+  docker compose stop openc3-cosmos-script-runner-api
+  docker compose stop openc3-cosmos-cmd-tlm-api
+  docker compose stop openc3-metrics
   timeout /t 5 /nobreak
-  docker-compose -f compose.yaml down -t 30
+  docker compose -f compose.yaml down -t 30
   @echo off
 GOTO :EOF
 
@@ -66,12 +66,12 @@ GOTO :EOF
   )
 
 :cleanup_y
-  docker-compose -f compose.yaml down -t 30 -v
+  docker compose -f compose.yaml down -t 30 -v
   @echo off
 GOTO :EOF
 
 :run
-  docker-compose -f compose.yaml up -d
+  docker compose -f compose.yaml up -d
   @echo off
 GOTO :EOF
 
