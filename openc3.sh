@@ -1,12 +1,20 @@
 #!/bin/bash
 
+set +e
+
+export DOCKER_COMPOSE_COMMAND="docker compose"
+${DOCKER_COMPOSE_COMMAND} version
+if [ "$?" -ne 0 ]; then
+  export DOCKER_COMPOSE_COMMAND="docker-compose"
+fi
+
 set -e
 
 usage() {
   echo "Usage: $1 [cli, cliroot, start, stop, cleanup, run, util]" >&2
   echo "*  cli: run a cli command as the default user ('cli help' for more info)" 1>&2
   echo "*  cliroot: run a cli command as the root user ('cli help' for more info)" 1>&2
-  echo "*  start: start the docker-compose openc3" >&2
+  echo "*  start: start the docker compose openc3" >&2
   echo "*  stop: stop the running dockers for openc3" >&2
   echo "*  cleanup: cleanup network and volumes for openc3" >&2
   echo "*  run: run the prebuilt containers for openc3" >&2
@@ -42,31 +50,31 @@ case $1 in
     set +a
     ;;
   start )
-    docker-compose -f compose.yaml up -d
+    ${DOCKER_COMPOSE_COMMAND} -f compose.yaml up -d
     ;;
   stop )
-    docker-compose stop openc3-operator
-    docker-compose stop openc3-cosmos-script-runner-api
-    docker-compose stop openc3-cosmos-cmd-tlm-api
+    ${DOCKER_COMPOSE_COMMAND} stop openc3-operator
+    ${DOCKER_COMPOSE_COMMAND} stop openc3-cosmos-script-runner-api
+    ${DOCKER_COMPOSE_COMMAND} stop openc3-cosmos-cmd-tlm-api
     sleep 5
-    docker-compose -f compose.yaml down -t 30
+    ${DOCKER_COMPOSE_COMMAND} -f compose.yaml down -t 30
     ;;
   cleanup )
     if [ "$2" == "force" ]
     then
-      docker-compose -f compose.yaml down -t 30 -v
+      ${DOCKER_COMPOSE_COMMAND} -f compose.yaml down -t 30 -v
     else
       echo "Are you sure? Cleanup removes ALL docker volumes and all COSMOS data! (1-Yes / 2-No)"
       select yn in "Yes" "No"; do
         case $yn in
-          Yes ) docker-compose -f compose.yaml down -t 30 -v; break;;
+          Yes ) ${DOCKER_COMPOSE_COMMAND} -f compose.yaml down -t 30 -v; break;;
           No ) exit;;
         esac
       done
     fi
     ;;
   run )
-    docker-compose -f compose.yaml up -d
+    ${DOCKER_COMPOSE_COMMAND} -f compose.yaml up -d
     ;;
   util )
     scripts/linux/openc3_util.sh "${@:2}"
