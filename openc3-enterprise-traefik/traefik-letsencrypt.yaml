@@ -20,6 +20,8 @@ certificatesResolvers:
       email: me@mydomain.com
       storage: "/etc/traefik/acme.json"
       tlsChallenge: {}
+ping:
+  entryPoint: "web"
 http:
   middlewares:
     # Make keycloak think we are always proxying https

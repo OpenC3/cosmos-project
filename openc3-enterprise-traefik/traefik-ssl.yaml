@@ -20,6 +20,8 @@ entrypoints:
       tls:
         domains:
           - main: "mydomain.com" # Update with your domain
+ping:
+  entryPoint: "web"
 http:
   middlewares:
     # Make keycloak think we are always proxying https

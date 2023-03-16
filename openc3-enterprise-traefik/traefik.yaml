@@ -3,6 +3,8 @@
 entrypoints:
   web:
     address: ":80"
+ping:
+  entryPoint: "web"
 http:
   middlewares:
     # Removes the first part of the url before passing onto the service
