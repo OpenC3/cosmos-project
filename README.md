@@ -44,7 +44,7 @@ Installing OpenC3 COSMOS Enterprise is very similar to installing OpenC3 COSMOS.
 1. Stop OpenC3
    1. On Linux/Mac: ./openc3.sh stop
    2. On Windows: openc3.bat stop
-2. Edit .env and change OPENC3_ENTERPRISE_TAG to the specific version you would like to run (ie. OPENC3_ENTERPRISE_TAG=5.0.8)
+2. Edit .env and change OPENC3_ENTERPRISE_TAG to the specific version you would like to run (ie. OPENC3_ENTERPRISE_TAG=5.3.0)
 3. Start OpenC3
    1. On Linux/Mac: ./openc3.sh run
    2. On Windows: openc3.bat run
