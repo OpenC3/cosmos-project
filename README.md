@@ -8,7 +8,7 @@ place for any project who wants to use OpenC3 COSMOS, but not develop the core s
 ## Quick Start
 
 1. git clone https://github.com/openc3/cosmos-project.git cosmos-myprojectname
-2. Edit .env and change OPENC3_TAG to the specific version you would like to run (ie. OPENC3_TAG=5.0.8)
+2. Edit .env and change OPENC3_TAG to the specific version you would like to run (ie. OPENC3_TAG=5.3.0)
     1. This will allow you to upgrade versions when you choose rather than following latest
 3. Start OpenC3 COSMOS
     1. On Linux/Mac: ./openc3.sh run
@@ -37,9 +37,9 @@ place for any project who wants to use OpenC3 COSMOS, but not develop the core s
     1. SECRET_KEY_BASE
     2. OPENC3_SERVICE_PASSWORD
     3. OPENC3_REDIS_PASSWORD
-    4. OPENC3_MINIO_PASSWORD
+    4. OPENC3_BUCKET_PASSWORD
     5. OPENC3_SR_REDIS_PASSWORD
-    6. OPENC3_SR_MINIO_PASSWORD
+    6. OPENC3_SR_BUCKET_PASSWORD
 2. Edit ./openc3-redis/users.acl and change the password for each account.  Note passwords for openc3/scriptrunner must match the REDIS passwords in the .env file:
     1. openc3
     2. admin
