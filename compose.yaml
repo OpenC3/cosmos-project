@@ -12,6 +12,10 @@
 
 version: "3.5"
 
+networks:
+  default:
+    name: openc3-cosmos-network
+
 services:
   openc3-minio:
     image: "${OPENC3_ENTERPRISE_REGISTRY}/${OPENC3_ENTERPRISE_NAMESPACE}/openc3-enterprise-minio:${OPENC3_ENTERPRISE_TAG}"
