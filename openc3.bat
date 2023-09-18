@@ -39,6 +39,7 @@ if "%1" == "run" (
   GOTO run
 )
 if "%1" == "util" (
+  FOR /F "tokens=*" %%i in ('findstr /V /B /L /C:# %~dp0.env') do SET %%i
   GOTO util
 )
 
