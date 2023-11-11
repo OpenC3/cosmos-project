@@ -2,10 +2,34 @@
 
 set +e
 
+if ! command -v docker &> /dev/null
+then
+  if command -v podman &> /dev/null
+  then
+    function docker() {
+      podman $@
+    }
+  else
+    echo "Neither docker nor podman found!!!"
+    exit 1
+  fi
+fi
+
 export DOCKER_COMPOSE_COMMAND="docker compose"
 ${DOCKER_COMPOSE_COMMAND} version &> /dev/null
 if [ "$?" -ne 0 ]; then
   export DOCKER_COMPOSE_COMMAND="docker-compose"
+fi
+
+docker info | grep -e "rootless$" -e "rootless: true"
+if [ "$?" -ne 0 ]; then
+  export OPENC3_ROOTFUL=1
+  export OPENC3_USER_ID=`id -u`
+  export OPENC3_GROUP_ID=`id -g`
+else
+  export OPENC3_ROOTLESS=1
+  export OPENC3_USER_ID=0
+  export OPENC3_GROUP_ID=0
 fi
 
 set -e
@@ -26,9 +50,6 @@ if [ "$#" -eq 0 ]; then
   usage $0
 fi
 
-export OPENC3_USER_ID=`id -u`
-export OPENC3_GROUP_ID=`id -g`
-
 case $1 in
   cli )
     # Source the .env file to setup environment variables
@@ -41,7 +62,7 @@ case $1 in
     args=`echo $@ | { read _ args; echo $args; }`
     # Make sure the network exists
     (docker network create openc3-cosmos-network || true) &> /dev/null
-    docker run -it --rm --env-file "$(dirname -- "$0")/.env" --user=$OPENC3_USER_ID:$OPENC3_GROUP_ID --network openc3-cosmos-network -v `pwd`:/openc3/local:z -w /openc3/local $OPENC3_REGISTRY/openc3inc/openc3-operator:$OPENC3_TAG ruby /openc3/bin/openc3cli $args
+    docker run -it --rm --env-file "$(dirname -- "$0")/.env" --user=$OPENC3_USER_ID:$OPENC3_GROUP_ID --network openc3-cosmos-network -v `pwd`:/openc3/local:z -w /openc3/local $OPENC3_REGISTRY/$OPENC3_NAMESPACE/openc3-operator:$OPENC3_TAG ruby /openc3/bin/openc3cli $args
     set +a
     ;;
   cliroot )
@@ -49,7 +70,7 @@ case $1 in
     . "$(dirname -- "$0")/.env"
     args=`echo $@ | { read _ args; echo $args; }`
     (docker network create openc3-cosmos-network || true) &> /dev/null
-    docker run -it --rm --env-file "$(dirname -- "$0")/.env" --user=root --network openc3-cosmos-network -v `pwd`:/openc3/local:z -w /openc3/local $OPENC3_REGISTRY/openc3inc/openc3-operator:$OPENC3_TAG ruby /openc3/bin/openc3cli $args
+    docker run -it --rm --env-file "$(dirname -- "$0")/.env" --user=root --network openc3-cosmos-network -v `pwd`:/openc3/local:z -w /openc3/local $OPENC3_REGISTRY/$OPENC3_NAMESPACE/openc3-operator:$OPENC3_TAG ruby /openc3/bin/openc3cli $args
     set +a
     ;;
   start )

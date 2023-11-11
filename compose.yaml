@@ -28,7 +28,7 @@ networks:
 
 services:
   openc3-minio:
-    image: "${OPENC3_REGISTRY}/openc3inc/openc3-minio:${OPENC3_TAG}"
+    image: "${OPENC3_REGISTRY}/${OPENC3_NAMESPACE}/openc3-minio${OPENC3_IMAGE_SUFFIX}:${OPENC3_TAG}"
     # Uncomment to run unit tests against the minio server
     # ports:
     #   - "127.0.0.1:9000:9000"
@@ -55,7 +55,7 @@ services:
       NODE_EXTRA_CA_CERTS: "/devel/cacert.pem"
 
   openc3-redis:
-    image: "${OPENC3_REGISTRY}/openc3inc/openc3-redis:${OPENC3_TAG}"
+    image: "${OPENC3_REGISTRY}/${OPENC3_NAMESPACE}/openc3-redis${OPENC3_IMAGE_SUFFIX}:${OPENC3_TAG}"
     volumes:
       - "openc3-redis-v:/data"
       - "./cacert.pem:/devel/cacert.pem:z"
@@ -73,13 +73,13 @@ services:
       NODE_EXTRA_CA_CERTS: "/devel/cacert.pem"
 
   openc3-redis-ephemeral:
-    image: "${OPENC3_REGISTRY}/openc3inc/openc3-redis:${OPENC3_TAG}"
+    image: "${OPENC3_REGISTRY}/${OPENC3_NAMESPACE}/openc3-redis${OPENC3_IMAGE_SUFFIX}:${OPENC3_TAG}"
     volumes:
       - "openc3-redis-ephemeral-v:/data"
       - "./cacert.pem:/devel/cacert.pem:z"
       - "./openc3-redis/users.acl:/config/users.acl:z"
     restart: "unless-stopped"
-    command: [ "redis-server", "/config/redis_ephemeral.conf" ]
+    command: ["redis-server", "/config/redis_ephemeral.conf"]
     logging:
       driver: "json-file"
       options:
@@ -95,7 +95,7 @@ services:
     # For rootless podman - Uncomment this user line and comment out the next
     # user: 0:0
     user: "${OPENC3_USER_ID:-1000}:${OPENC3_GROUP_ID:-1000}"
-    image: "${OPENC3_REGISTRY}/openc3inc/openc3-cosmos-cmd-tlm-api:${OPENC3_TAG}"
+    image: "${OPENC3_REGISTRY}/${OPENC3_NAMESPACE}/openc3-cosmos-cmd-tlm-api${OPENC3_IMAGE_SUFFIX}:${OPENC3_TAG}"
     restart: "unless-stopped"
     depends_on:
       - "openc3-redis"
@@ -113,6 +113,7 @@ services:
     environment:
       RAILS_ENV: "production"
       GEM_HOME: "/gems"
+      PYTHONUSERBASE: "/gems/python_packages"
       OPENC3_REDIS_USERNAME: "${OPENC3_REDIS_USERNAME}"
       OPENC3_REDIS_PASSWORD: "${OPENC3_REDIS_PASSWORD}"
       OPENC3_BUCKET_USERNAME: "${OPENC3_BUCKET_USERNAME}"
@@ -125,7 +126,7 @@ services:
     # For rootless podman - Uncomment this user line and comment out the next
     # user: 0:0
     user: "${OPENC3_USER_ID:-1000}:${OPENC3_GROUP_ID:-1000}"
-    image: "${OPENC3_REGISTRY}/openc3inc/openc3-cosmos-script-runner-api:${OPENC3_TAG}"
+    image: "${OPENC3_REGISTRY}/${OPENC3_NAMESPACE}/openc3-cosmos-script-runner-api${OPENC3_IMAGE_SUFFIX}:${OPENC3_TAG}"
     restart: "unless-stopped"
     depends_on:
       - "openc3-redis"
@@ -143,6 +144,7 @@ services:
     environment:
       RAILS_ENV: "production"
       GEM_HOME: "/gems"
+      PYTHONUSERBASE: "/gems/python_packages"
       OPENC3_REDIS_USERNAME: "${OPENC3_REDIS_USERNAME}"
       OPENC3_REDIS_PASSWORD: "${OPENC3_REDIS_PASSWORD}"
       OPENC3_BUCKET_USERNAME: "${OPENC3_BUCKET_USERNAME}"
@@ -159,7 +161,7 @@ services:
     # For rootless podman - Uncomment this user line and comment out the next
     # user: 0:0
     user: "${OPENC3_USER_ID:-1000}:${OPENC3_GROUP_ID:-1000}"
-    image: "${OPENC3_REGISTRY}/openc3inc/openc3-operator:${OPENC3_TAG}"
+    image: "${OPENC3_REGISTRY}/${OPENC3_NAMESPACE}/openc3-operator${OPENC3_IMAGE_SUFFIX}:${OPENC3_TAG}"
     restart: "unless-stopped"
     # ports:
     #  - "127.0.0.1:7779:7779" # Open port for the demo router
@@ -180,6 +182,7 @@ services:
         max-file: "3"
     environment:
       GEM_HOME: "/gems"
+      PYTHONUSERBASE: "/gems/python_packages"
       OPENC3_REDIS_USERNAME: "${OPENC3_REDIS_USERNAME}"
       OPENC3_REDIS_PASSWORD: "${OPENC3_REDIS_PASSWORD}"
       OPENC3_BUCKET_USERNAME: "${OPENC3_BUCKET_USERNAME}"
@@ -191,7 +194,7 @@ services:
       - host.docker.internal:host-gateway
 
   openc3-traefik:
-    image: "${OPENC3_REGISTRY}/openc3inc/openc3-traefik:${OPENC3_TAG}"
+    image: "${OPENC3_REGISTRY}/${OPENC3_NAMESPACE}/openc3-traefik${OPENC3_IMAGE_SUFFIX}:${OPENC3_TAG}"
     volumes:
       - "./cacert.pem:/devel/cacert.pem:z"
       - "./openc3-traefik/traefik.yaml:/etc/traefik/traefik.yaml:z"
@@ -225,7 +228,7 @@ services:
     # For rootless podman - Uncomment this user line and comment out the next
     # user: 0:0
     user: "${OPENC3_USER_ID:-1000}:${OPENC3_GROUP_ID:-1000}"
-    image: "${OPENC3_REGISTRY}/openc3inc/openc3-cosmos-init:${OPENC3_TAG}"
+    image: "${OPENC3_REGISTRY}/${OPENC3_NAMESPACE}/openc3-cosmos-init${OPENC3_IMAGE_SUFFIX}:${OPENC3_TAG}"
     restart: on-failure
     depends_on:
       - "openc3-traefik"
@@ -243,6 +246,7 @@ services:
         max-file: "3"
     environment:
       GEM_HOME: "/gems"
+      PYTHONUSERBASE: "/gems/python_packages"
       OPENC3_REDIS_USERNAME: "${OPENC3_REDIS_USERNAME}"
       OPENC3_REDIS_PASSWORD: "${OPENC3_REDIS_PASSWORD}"
       OPENC3_BUCKET_USERNAME: "${OPENC3_BUCKET_USERNAME}"
