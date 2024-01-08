@@ -38,6 +38,7 @@ docker run --rm -v "%CurrDirName%_openc3-redis-v:/original" --user root docker.i
 docker run --rm -v "%CurrDirName%_openc3-redis-ephemeral-v:/original" --user root docker.io/openc3inc/openc3-operator:5.13.0 sh -c "chown -R 1001 /original"
 
 REM Handle rename and adjust file permissions in Minio bucket volume
+docker volume create --label "com.docker.compose.project"="%CurrDirName%" --label "com.docker.compose.version"="2.23.0" --label "com.docker.compose.volume"="openc3-bucket-v" "%CurrDirName%_openc3-bucket-v"
 docker run --rm -v "%CurrDirName%_openc3-minio-v:/original" -v "%CurrDirName%_openc3-bucket-v:/new" --user root docker.io/openc3inc/openc3-operator:5.13.0 sh -c "cp -R /original/* /new/ && chown -R 1001:1001 /new"
 
 REM All Done! - At this point you should be able to startup successfully with openc3.bat run
