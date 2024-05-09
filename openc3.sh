@@ -74,7 +74,6 @@ case $1 in
     set +a
     ;;
   start )
-    ./openc3.sh build
     ./openc3.sh run
     ;;
   stop )
