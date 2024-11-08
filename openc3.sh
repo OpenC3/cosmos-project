@@ -38,7 +38,7 @@ usage() {
   echo "Usage: $1 [cli, cliroot, start, stop, cleanup, run, util]" >&2
   echo "*  cli: run a cli command as the default user ('cli help' for more info)" 1>&2
   echo "*  cliroot: run a cli command as the root user ('cli help' for more info)" 1>&2
-  echo "*  start: build and run" >&2
+  echo "*  start: alias for run" >&2
   echo "*  stop: stop the containers (compose stop)" >&2
   echo "*  cleanup [local] [force]: REMOVE volumes / data (compose down -v)" >&2
   echo "*  run: run the containers (compose up)" >&2
@@ -62,9 +62,6 @@ case $1 in
     args=`echo $@ | { read _ args; echo $args; }`
     ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" run -it --rm -v `pwd`:/openc3/local:z -w /openc3/local -e OPENC3_API_PASSWORD=$OPENC3_API_PASSWORD --no-deps openc3-cosmos-cmd-tlm-api ruby /openc3/bin/openc3cli $args
     set +a
-    ;;
-  start )
-    ./openc3.sh run
     ;;
   stop )
     ${DOCKER_COMPOSE_COMMAND} stop openc3-operator
@@ -94,7 +91,7 @@ case $1 in
       cd ../..
     fi
     ;;
-  run )
+  start | run )
     ${DOCKER_COMPOSE_COMMAND} -f compose.yaml up -d
     ;;
   run-ubi )
