@@ -37,7 +37,7 @@ set -e
 usage() {
   echo "Usage: $1 [cli, start, stop, cleanup, run, util]" >&2
   echo "*  cli: run a cli command as the default user ('cli help' for more info)" 1>&2
-  echo "*  start: build and run" >&2
+  echo "*  start: alias for run" >&2
   echo "*  stop: stop the containers (compose stop)" >&2
   echo "*  cleanup [local] [force]: REMOVE volumes / data (compose down -v)" >&2
   echo "*  run: run the containers (compose up)" >&2
