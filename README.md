@@ -45,6 +45,14 @@ place for any project who wants to use OpenC3 COSMOS, but not develop the core s
    2. admin
    3. scriptrunner
 
+Passwords stored in `./openc3-redis/users.acl` use a sha256 hash.
+To generate a new hash use the following method, and then copy / paste into users.acl
+
+```bash
+echo -n 'adminpassword' | openssl dgst -sha256
+SHA2-256(stdin)= 749f09bade8aca755660eeb17792da880218d4fbdc4e25fbec279d7fe9f65d70
+```
+
 ## Opening to the Network
 
 Important: Before exposing OpenC3 COSMOS to any network, even a local network, make sure you have changed all default credentials and secrets!!!
