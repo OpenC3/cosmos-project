@@ -25,7 +25,8 @@ if "%1" == "cliroot" (
   GOTO :EOF
 )
 if "%1" == "start" (
-  GOTO startup
+  REM start is an alias for run in the project
+  GOTO run
 )
 if "%1" == "stop" (
   GOTO stop
@@ -42,11 +43,6 @@ if "%1" == "util" (
 )
 
 GOTO usage
-
-:startup
-  docker compose -f compose.yaml up -d
-  @echo off
-GOTO :EOF
 
 :stop
   docker compose stop openc3-operator
@@ -98,7 +94,7 @@ GOTO :EOF
   @echo Usage: %0 [cli, cliroot, start, stop, cleanup, run, util] 1>&2
   @echo *  cli: run a cli command as the default user ('cli help' for more info) 1>&2
   @echo *  cliroot: run a cli command as the root user ('cli help' for more info) 1>&2
-  @echo *  start: build and run 1>&2
+  @echo *  start: alias for run 1>&2
   @echo *  stop: stop the containers (compose stop) 1>&2
   @echo *  cleanup [local] [force]: REMOVE volumes / data (compose down -v) 1>&2
   @echo *  run: run the containers (compose up) 1>&2

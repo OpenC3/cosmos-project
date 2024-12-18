@@ -21,7 +21,7 @@ place for any project who wants to use OpenC3 COSMOS, but not develop the core s
 1. Edit .env and remove the OPENC3_DEMO line
 2. If you have already ran with the demo also uninstall the demo plugin from the Admin tool.
 
-## Upgrade or Downgrade to a Specific Version
+## Upgrade to a Specific Version
 
 1. Stop OpenC3
    1. On Linux/Mac: ./openc3.sh stop
@@ -30,6 +30,8 @@ place for any project who wants to use OpenC3 COSMOS, but not develop the core s
 3. Start OpenC3
    1. On Linux/Mac: ./openc3.sh run
    2. On Windows: openc3.bat run
+
+NOTE: Downgrades are not necessarily supported. When upgrading COSMOS we need to upgrade databases and sometimes migrate internal data structures. While we perform a full regression test on every release, we recommend upgrading an individual machine with your specific plugins and do local testing before rolling out the upgrade to your production system.
 
 ## Change all default credentials and secrets
 
