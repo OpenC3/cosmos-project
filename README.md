@@ -8,7 +8,7 @@ place for any project who wants to use OpenC3 COSMOS, but not develop the core s
 ## Quick Start
 
 1. git clone https://github.com/openc3/cosmos-project.git cosmos-myprojectname
-2. Edit .env and change OPENC3_TAG to the specific version you would like to run (ie. OPENC3_TAG=5.3.0)
+2. Edit .env and change OPENC3_TAG to the specific version you would like to run (ie. OPENC3_TAG=6.4.1)
    1. This will allow you to upgrade versions when you choose rather than following latest
 3. Start OpenC3 COSMOS
    1. On Linux/Mac: ./openc3.sh run
@@ -26,7 +26,7 @@ place for any project who wants to use OpenC3 COSMOS, but not develop the core s
 1. Stop OpenC3
    1. On Linux/Mac: ./openc3.sh stop
    2. On Windows: openc3.bat stop
-2. Edit .env and change OPENC3_TAG to the specific version you would like to run (ie. OPENC3_TAG=5.0.8)
+2. Edit .env and change OPENC3_TAG to the specific version you would like to run (ie. OPENC3_TAG=6.4.1)
 3. Start OpenC3
    1. On Linux/Mac: ./openc3.sh run
    2. On Windows: openc3.bat run
