@@ -35,12 +35,13 @@ fi
 set -e
 
 usage() {
-  echo "Usage: $1 [cli, start, stop, cleanup, run, util]" >&2
+  echo "Usage: $1 [cli, start, stop, cleanup, run, upgrade, util]" >&2
   echo "*  cli: run a cli command as the default user ('cli help' for more info)" 1>&2
   echo "*  start: alias for run" >&2
   echo "*  stop: stop the containers (compose stop)" >&2
   echo "*  cleanup [local] [force]: REMOVE volumes / data (compose down -v)" >&2
   echo "*  run: run the containers (compose up)" >&2
+  echo "*  upgrade: upgrade the COSMOS project" >&2
   echo "*  util: various helper commands" >&2
   exit 1
 }
@@ -95,6 +96,9 @@ case $1 in
     ;;
   run-ubi )
     OPENC3_IMAGE_SUFFIX=-ubi OPENC3_REDIS_VOLUME=/home/data ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" up -d
+    ;;
+  upgrade )
+    scripts/linux/openc3_upgrade.sh "${@:2}"
     ;;
   util )
     set -a
