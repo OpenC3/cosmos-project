@@ -82,6 +82,14 @@ GOTO :EOF
   @echo off
 GOTO :EOF
 
+:upgrade
+  REM Send the remaining arguments to openc3_upgrade
+  set args=%*
+  call set args=%%args:*%1=%%
+  CALL scripts\windows\openc3_upgrade %args% || exit /b
+  @echo off
+GOTO :EOF
+
 :util
   REM Send the remaining arguments to openc3_util
   set args=%*
@@ -98,6 +106,7 @@ GOTO :EOF
   @echo *  stop: stop the containers (compose stop) 1>&2
   @echo *  cleanup [local] [force]: REMOVE volumes / data (compose down -v) 1>&2
   @echo *  run: run the containers (compose up) 1>&2
+  @echo *  upgrade: upgrade the COSMOS project 1>&2
   @echo *  util: various helper commands 1>&2
 
 @echo on
