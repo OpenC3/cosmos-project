@@ -40,11 +40,11 @@ fi
 
 # If the --preview flag is set, show the diff without applying changes
 if [ "$2" == "--preview" ]; then
-  git diff HEAD $1
+  git diff -R $1
   exit 0
 fi
 
-git diff HEAD $1 | git apply --whitespace=fix
+git diff -R $1 | git apply --whitespace=fix
 echo "Applied changes from tag '$1'."
 echo "We recommend committing these changes to your local repository."
 echo "e.g. git commit -am 'Upgrade to $1'"
