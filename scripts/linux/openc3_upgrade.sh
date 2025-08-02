@@ -44,7 +44,7 @@ if [ "$2" == "--preview" ]; then
   exit 0
 fi
 
-git diff -R $1 | git apply --whitespace=fix
+git diff -R $1 | git apply --whitespace=fix --exclude="plugins/*"
 echo "Applied changes from tag '$1'."
 echo "We recommend committing these changes to your local repository."
 echo "e.g. git commit -am 'Upgrade to $1'"
