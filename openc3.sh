@@ -15,6 +15,16 @@ then
   fi
 fi
 
+# Helper function to find script - checks PATH first, then falls back to script location
+find_script() {
+  local script_name="$1"
+  if command -v "$script_name" &> /dev/null; then
+    echo "$script_name"
+  else
+    echo "$(dirname -- "$0")/scripts/linux/$script_name"
+  fi
+}
+
 export DOCKER_COMPOSE_COMMAND="docker compose"
 ${DOCKER_COMPOSE_COMMAND} version &> /dev/null
 if [ "$?" -ne 0 ]; then
@@ -35,18 +45,73 @@ fi
 set -e
 
 usage() {
-  echo "Usage: $1 [cli, start, stop, cleanup, run, upgrade, util]" >&2
-  echo "*  cli: run a cli command as the default user ('cli help' for more info)" 1>&2
-  echo "*  start: alias for run" >&2
-  echo "*  stop: stop the containers (compose stop)" >&2
-  echo "*  cleanup [local] [force]: REMOVE volumes / data (compose down -v)" >&2
-  echo "*  run: run the containers (compose up)" >&2
-  echo "*  upgrade: upgrade the COSMOS project" >&2
-  echo "*  util: various helper commands" >&2
+  cat >&2 << EOF
+OpenC3 - Command and Control System
+Usage: $1 COMMAND [OPTIONS]
+
+DESCRIPTION:
+  OpenC3 is a command and control system for embedded systems. This script
+  provides a convenient interface for building, running, testing, and managing
+  OpenC3 in Docker containers.
+
+COMMON COMMANDS:
+  run                   Start OpenC3 containers
+                        Access at: http://localhost:2900
+
+  stop                  Stop all running OpenC3 containers gracefully
+                        Allows containers to shutdown cleanly.
+
+  cli [COMMAND]         Run OpenC3 CLI commands in a container
+                        Use 'cli help' for available commands
+                        Use 'cli --help' for Docker wrapper info
+                        Examples:
+                          $1 cli generate plugin MyPlugin
+                          $1 cli validate myplugin.gem
+
+  cliroot [COMMAND]     Run OpenC3 CLI commands as root user
+                        Same as 'cli' but with root privileges
+
+DEVELOPMENT COMMANDS:
+  test [COMMAND]        Run test suites (rspec, playwright, hash)
+                        Use '$1 test' to see available test commands.
+
+  util [COMMAND]        Utility commands (encode, hash, save, load, etc.)
+                        Use '$1 util' to see available utilities.
+
+CLEANUP:
+  cleanup [OPTIONS]     Remove Docker volumes and data
+                        WARNING: This deletes all OpenC3 data!
+                        Options:
+                          local  - Also remove local plugin files
+                          force  - Skip confirmation prompt
+
+REDHAT:
+  run-ubi               Run containers with UBI images
+                        For air-gapped or government environments.
+
+GETTING STARTED:
+  1. First time setup:     $1 start
+  2. Access OpenC3:        http://localhost:2900
+  3. Stop when done:       $1 stop
+  4. Remove everything:    $1 cleanup
+
+MORE INFORMATION:
+  Run '$1 COMMAND --help' for detailed help on any command.
+  Documentation: https://docs.openc3.com
+
+OPTIONS:
+  -h, --help            Show this help message
+
+EOF
   exit 1
 }
 
 if [ "$#" -eq 0 ]; then
+  usage $0
+fi
+
+# Check for help flag
+if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
   usage $0
 fi
 
@@ -58,6 +123,37 @@ check_root() {
 
 case $1 in
   cli )
+    if [ "$2" == "--wrapper-help" ] || [ "$2" == "--help" ] || [ "$2" == "-h" ]; then
+      echo "Usage: $0 cli [COMMAND] [OPTIONS]"
+      echo ""
+      echo "Run OpenC3 CLI commands inside a Docker container as the default user."
+      echo ""
+      echo "What this wrapper does:"
+      echo "  - Starts a temporary Docker container (removed after use)"
+      echo "  - Mounts your current directory as /openc3/local inside the container"
+      echo "  - Runs the Ruby CLI tool (/openc3/bin/openc3cli) with your arguments"
+      echo "  - Uses interactive terminal mode (-it) for commands that need input"
+      echo ""
+      echo "Prerequisites:"
+      echo "  - Containers must be built first: $0 build"
+      echo "  - .env file must exist in the OpenC3 directory"
+      echo ""
+      echo "Common commands:"
+      echo "  $0 cli help                           Show CLI command help"
+      echo "  $0 cli validate plugin.gem            Validate a plugin"
+      echo "  $0 cli load plugin.gem                Load a plugin"
+      echo "  $0 cli generate plugin MyPlugin --ruby"
+      echo "                                        Generate a new plugin"
+      echo ""
+      echo "For detailed CLI command help, run: $0 cli help"
+      echo ""
+      echo "Note: Use 'cliroot' instead of 'cli' to run as root user."
+      echo ""
+      echo "Options:"
+      echo "  -h, --help        Show this help message"
+      echo "  --wrapper-help    (same as --help)"
+      exit 0
+    fi
     # Source the .env file to setup environment variables
     set -a
     . "$(dirname -- "$0")/.env"
@@ -69,7 +165,61 @@ case $1 in
     ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" run -it --rm -v `pwd`:/openc3/local:z -w /openc3/local -e OPENC3_API_PASSWORD=$OPENC3_API_PASSWORD --no-deps openc3-cosmos-cmd-tlm-api ruby /openc3/bin/openc3cli $args
     set +a
     ;;
+  cliroot )
+    if [ "$2" == "--wrapper-help" ] || [ "$2" == "--help" ] || [ "$2" == "-h" ]; then
+      echo "Usage: $0 cliroot [COMMAND] [OPTIONS]"
+      echo ""
+      echo "Run OpenC3 CLI commands inside a Docker container as root user."
+      echo ""
+      echo "This is the same as 'cli' but runs as root instead of the default user."
+      echo "Use this when you need elevated privileges inside the container."
+      echo ""
+      echo "What this wrapper does:"
+      echo "  - Starts a temporary Docker container (removed after use)"
+      echo "  - Mounts your current directory as /openc3/local inside the container"
+      echo "  - Runs the Ruby CLI tool (/openc3/bin/openc3cli) with your arguments"
+      echo "  - Uses interactive terminal mode (-it) for commands that need input"
+      echo "  - Runs as root user (--user=root)"
+      echo ""
+      echo "Prerequisites:"
+      echo "  - Containers must be built first: $0 build"
+      echo "  - .env file must exist in the OpenC3 directory"
+      echo ""
+      echo "Common commands:"
+      echo "  $0 cliroot help                       Show CLI command help"
+      echo "  $0 cliroot validate plugin.gem        Validate a plugin"
+      echo "  $0 cliroot load plugin.gem            Load a plugin"
+      echo ""
+      echo "For detailed CLI command help, run: $0 cliroot help"
+      echo ""
+      echo "Options:"
+      echo "  -h, --help        Show this help message"
+      echo "  --wrapper-help    (same as --help)"
+      exit 0
+    fi
+    # Source the .env file to setup environment variables
+    set -a
+    . "$(dirname -- "$0")/.env"
+    # Same as cli but run as root user
+    args=`echo $@ | { read _ args; echo $args; }`
+    ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" run -it --rm --user=root -v `pwd`:/openc3/local:z -w /openc3/local -e OPENC3_API_PASSWORD=$OPENC3_API_PASSWORD --no-deps openc3-cosmos-cmd-tlm-api ruby /openc3/bin/openc3cli $args
+    set +a
+    ;;
   stop )
+    if [ "$2" == "--help" ] || [ "$2" == "-h" ]; then
+      echo "Usage: $0 stop"
+      echo ""
+      echo "Stop all OpenC3 containers gracefully."
+      echo ""
+      echo "This command:"
+      echo "  1. Stops operator, script-runner-api, and cmd-tlm-api containers"
+      echo "  2. Waits 5 seconds"
+      echo "  3. Runs docker compose down with 30 second timeout"
+      echo ""
+      echo "Options:"
+      echo "  -h, --help    Show this help message"
+      exit 0
+    fi
     ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" stop openc3-operator
     ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" stop openc3-cosmos-script-runner-api
     ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" stop openc3-cosmos-cmd-tlm-api
@@ -77,6 +227,27 @@ case $1 in
     ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" down -t 30
     ;;
   cleanup )
+    if [ "$2" == "--help" ] || [ "$2" == "-h" ]; then
+      echo "Usage: $0 cleanup [local] [force]"
+      echo ""
+      echo "Remove all OpenC3 docker volumes and data."
+      echo ""
+      echo "WARNING: This is a destructive operation that removes ALL COSMOS data!"
+      echo ""
+      echo "Arguments:"
+      echo "  local    Also remove local plugin files in plugins/DEFAULT/"
+      echo "  force    Skip confirmation prompt"
+      echo ""
+      echo "Examples:"
+      echo "  $0 cleanup              # Remove volumes (with confirmation)"
+      echo "  $0 cleanup force        # Remove volumes (no confirmation)"
+      echo "  $0 cleanup local        # Remove volumes and local plugins"
+      echo "  $0 cleanup local force  # Remove volumes and local plugins (no confirmation)"
+      echo ""
+      echo "Options:"
+      echo "  -h, --help    Show this help message"
+      exit 0
+    fi
     # They can specify 'cleanup force' or 'cleanup local force'
     if [ "$2" == "force" ] || [ "$3" == "force" ]
     then
@@ -92,26 +263,140 @@ case $1 in
     fi
     if [ "$2" == "local" ]
     then
-      cd plugins/DEFAULT
+      cd "$(dirname -- "$0")/plugins/DEFAULT"
       ls | grep -xv "README.md" | xargs rm -r
       cd ../..
     fi
     ;;
   start | run )
+    if [ "$2" == "--help" ] || [ "$2" == "-h" ]; then
+      echo "Usage: $0 run"
+      echo ""
+      echo "Run all OpenC3 containers in detached mode."
+      echo ""
+      echo "Containers will start in the background using docker compose up -d."
+      echo ""
+      echo "After starting, check status with:"
+      echo "  docker compose ps                   # Show running containers"
+      echo "  docker compose logs -f              # Follow all logs"
+      echo "  docker compose logs -f SERVICE      # Follow specific service logs"
+      echo ""
+      echo "Access OpenC3:"
+      echo "  http://localhost:2900               # OpenC3 web interface"
+      echo ""
+      echo "Common services:"
+      echo "  openc3-operator                     Main orchestration service"
+      echo "  openc3-cosmos-cmd-tlm-api          Command/Telemetry API"
+      echo "  openc3-cosmos-script-runner-api    Script execution service"
+      echo "  openc3-redis                        Redis database"
+      echo "  openc3-minio                        Object storage"
+      echo ""
+      echo "Options:"
+      echo "  -h, --help    Show this help message"
+      exit 0
+    fi
     check_root
     ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" up -d
     ;;
-  run-ubi )
+  start-ubi | run-ubi )
+    if [ "$2" == "--help" ] || [ "$2" == "-h" ]; then
+      echo "Usage: $0 run-ubi"
+      echo ""
+      echo "Run all OpenC3 UBI (Universal Base Image) containers in detached mode."
+      echo ""
+      echo "This uses UBI-based container images and sets UBI-specific configurations:"
+      echo "  - Image suffix: -ubi"
+      echo "  - Redis volume: /home/data (for UBI compatibility)"
+      echo ""
+      echo "Containers will start in the background using docker compose up -d."
+      echo ""
+      echo "After starting, check status with:"
+      echo "  docker compose ps                   # Show running containers"
+      echo "  docker compose logs -f              # Follow all logs"
+      echo "  docker compose logs -f SERVICE      # Follow specific service logs"
+      echo ""
+      echo "Access OpenC3:"
+      echo "  http://localhost:2900               # OpenC3 web interface"
+      echo ""
+      echo "Common services:"
+      echo "  openc3-operator                     Main orchestration service"
+      echo "  openc3-cosmos-cmd-tlm-api          Command/Telemetry API"
+      echo "  openc3-cosmos-script-runner-api    Script execution service"
+      echo "  openc3-redis                        Redis database"
+      echo "  openc3-minio                        Object storage"
+      echo ""
+      echo "Options:"
+      echo "  -h, --help    Show this help message"
+      exit 0
+    fi
     check_root
     OPENC3_IMAGE_SUFFIX=-ubi OPENC3_REDIS_VOLUME=/home/data ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" up -d
+    ;;
+  test )
+    # Check for help at any position
+    if [ "$2" == "--help" ] || [ "$2" == "-h" ] || [ "$#" -eq 1 ]; then
+      echo "Usage: $0 test COMMAND [OPTIONS]"
+      echo ""
+      echo "Test OpenC3. This builds OpenC3 and runs the specified test suite."
+      echo ""
+      echo "Available commands:"
+      echo "  rspec                       Run RSpec tests against Ruby code"
+      echo "  playwright [SUBCOMMAND]     Run Playwright end-to-end tests"
+      echo "    install-playwright        Install playwright and dependencies"
+      echo "    build-plugin              Build the plugin for tests"
+      echo "    run-chromium              Run tests using Chrome"
+      echo "    reset-storage-state       Clear cached data"
+      echo "  hash                        Run comprehensive tests with coverage"
+      echo ""
+      echo "Run '$0 test COMMAND --help' for detailed help on each command."
+      echo ""
+      echo "Options:"
+      echo "  -h, --help                  Show this help message"
+      exit 0
+    fi
+    # If subcommand has --help or -h, skip setup/build and pass through directly
+    for arg in "$@"; do
+      if [ "$arg" == "--help" ] || [ "$arg" == "-h" ]; then
+        "$(find_script openc3_test.sh)" "${@:2}"
+        exit 0
+      fi
+    done
+    # Change to cosmos directory since openc3_setup.sh uses relative paths
+    cd "$(dirname -- "$0")"
+    "$(find_script openc3_setup.sh)"
+    ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" -f "$(dirname -- "$0")/compose-build.yaml" build
+    "$(find_script openc3_test.sh)" "${@:2}"
     ;;
   upgrade )
     scripts/linux/openc3_upgrade.sh "${@:2}"
     ;;
   util )
+    if [ "$2" == "--help" ] || [ "$2" == "-h" ] || [ "$#" -eq 1 ]; then
+      echo "Usage: $0 util COMMAND [OPTIONS]"
+      echo ""
+      echo "Various OpenC3 utility commands."
+      echo ""
+      echo "Available commands:"
+      echo "  encode STRING               Encode a string to base64"
+      echo "  hash STRING                 Hash a string using SHA-256"
+      echo "  save REPO NS TAG [SUFFIX]   Save docker images to tar files"
+      echo "  load [TAG] [SUFFIX]         Load docker images from tar files"
+      echo "  tag REPO1 REPO2 NS1 TAG1 [NS2] [TAG2] [SUFFIX]"
+      echo "                              Tag images from one repo to another"
+      echo "  push REPO NS TAG [SUFFIX]   Push images to docker repository"
+      echo "  clean                       Remove node_modules, coverage, etc"
+      echo "  hostsetup REPO NS TAG       Configure host for redis"
+      echo "  hostenter                   Shell into VM host"
+      echo ""
+      echo "Run '$0 util COMMAND --help' for detailed help on each command."
+      echo ""
+      echo "Options:"
+      echo "  -h, --help                  Show this help message"
+      exit 0
+    fi
     set -a
     . "$(dirname -- "$0")/.env"
-    scripts/linux/openc3_util.sh "${@:2}"
+    "$(find_script openc3_util.sh)" "${@:2}"
     set +a
     ;;
   * )
