@@ -17,5 +17,6 @@ cp ../cosmos/plugins/DEFAULT/README.md plugins/DEFAULT/.
 cp ../cosmos/scripts/linux/openc3_util.sh scripts/linux/.
 cp ../cosmos/scripts/windows/openc3_util.bat scripts/windows/.
 cp ../cosmos/.env .
-
-echo "Must manually sync applicable parts of openc3.sh and openc3.bat"
+cp ../cosmos/openc3.sh .
+cp ../cosmos/openc3.bat .
+cp ../cosmos/_zshrc .
