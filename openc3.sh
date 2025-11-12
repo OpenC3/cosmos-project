@@ -42,11 +42,20 @@ else
   export OPENC3_GROUP_ID=0
 fi
 
+# Detect if this is a development (build) environment or runtime environment
+# by checking for compose-build.yaml
+if [ -f "$(dirname -- "$0")/compose-build.yaml" ]; then
+  export OPENC3_DEVEL=1
+else
+  export OPENC3_DEVEL=0
+fi
+
 set -e
 
 usage() {
-  cat >&2 << EOF
-OpenC3 - Command and Control System
+  if [ "$OPENC3_DEVEL" -eq 1 ]; then
+    cat >&2 << EOF
+OpenC3 - Command and Control System (Development Installation)
 Usage: $1 COMMAND [OPTIONS]
 
 DESCRIPTION:
@@ -54,10 +63,39 @@ DESCRIPTION:
   provides a convenient interface for building, running, testing, and managing
   OpenC3 in Docker containers.
 
+  This is a DEVELOPMENT installation with source code and build capabilities.
+
 COMMON COMMANDS:
+EOF
+  else
+    cat >&2 << EOF
+OpenC3 - Command and Control System (Runtime-Only Installation)
+Usage: $1 COMMAND [OPTIONS]
+
+DESCRIPTION:
+  OpenC3 is a command and control system for embedded systems. This script
+  provides a convenient interface for running, testing, and managing
+  OpenC3 in Docker containers.
+
+  This is a RUNTIME-ONLY installation using pre-built images.
+
+COMMON COMMANDS:
+EOF
+  fi
+  if [ "$OPENC3_DEVEL" -eq 1 ]; then
+    cat >&2 << EOF
+  start                 Build and run OpenC3 (equivalent to: build + run)
+                        This is the typical command to get OpenC3 running.
+
+EOF
+  else
+    cat >&2 << EOF
   run                   Start OpenC3 containers
                         Access at: http://localhost:2900
 
+EOF
+  fi
+  cat >&2 << EOF
   stop                  Stop all running OpenC3 containers gracefully
                         Allows containers to shutdown cleanly.
 
@@ -71,13 +109,34 @@ COMMON COMMANDS:
   cliroot [COMMAND]     Run OpenC3 CLI commands as root user
                         Same as 'cli' but with root privileges
 
+EOF
+  if [ "$OPENC3_DEVEL" -eq 1 ]; then
+    cat >&2 << EOF
 DEVELOPMENT COMMANDS:
+  build                 Build all OpenC3 Docker containers from source
+                        Required before first run or after code changes.
+
+  run                   Start OpenC3 containers in detached mode
+                        Access at: http://localhost:2900
+
+EOF
+  fi
+  cat >&2 << EOF
   test [COMMAND]        Run test suites (rspec, playwright, hash)
                         Use '$1 test' to see available test commands.
 
   util [COMMAND]        Utility commands (encode, hash, save, load, etc.)
                         Use '$1 util' to see available utilities.
 
+EOF
+  if [ "$OPENC3_DEVEL" -eq 0 ]; then
+    cat >&2 << EOF
+  upgrade               Upgrade OpenC3 to latest version
+                        Downloads and installs latest release.
+
+EOF
+  fi
+  cat >&2 << EOF
 CLEANUP:
   cleanup [OPTIONS]     Remove Docker volumes and data
                         WARNING: This deletes all OpenC3 data!
@@ -85,10 +144,18 @@ CLEANUP:
                           local  - Also remove local plugin files
                           force  - Skip confirmation prompt
 
+EOF
+  if [ "$OPENC3_DEVEL" -eq 1 ]; then
+    cat >&2 << EOF
 REDHAT:
+  start-ubi             Build and run with Red Hat UBI images
+  build-ubi             Build containers using UBI base images
   run-ubi               Run containers with UBI images
                         For air-gapped or government environments.
 
+EOF
+  fi
+  cat >&2 << EOF
 GETTING STARTED:
   1. First time setup:     $1 start
   2. Access OpenC3:        http://localhost:2900
@@ -205,6 +272,70 @@ case $1 in
     ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" run -it --rm --user=root -v `pwd`:/openc3/local:z -w /openc3/local -e OPENC3_API_PASSWORD=$OPENC3_API_PASSWORD --no-deps openc3-cosmos-cmd-tlm-api ruby /openc3/bin/openc3cli $args
     set +a
     ;;
+  start )
+    if [ "$2" == "--help" ] || [ "$2" == "-h" ]; then
+      if [ "$OPENC3_DEVEL" -eq 1 ]; then
+        echo "Usage: $0 start"
+        echo ""
+        echo "Build and run OpenC3 containers."
+        echo ""
+        echo "This command:"
+        echo "  1. Builds all OpenC3 containers (equivalent to 'openc3.sh build')"
+        echo "  2. Starts all containers (equivalent to 'openc3.sh run')"
+        echo ""
+        echo "Options:"
+        echo "  -h, --help    Show this help message"
+      else
+        echo "Usage: $0 start"
+        echo ""
+        echo "Start OpenC3 containers."
+        echo ""
+        echo "This is an alias for 'run' command in runtime-only installations."
+        echo ""
+        echo "Options:"
+        echo "  -h, --help    Show this help message"
+      fi
+      exit 0
+    fi
+    if [ "$OPENC3_DEVEL" -eq 1 ]; then
+      "$0" build
+      "$0" run
+    else
+      "$0" run
+    fi
+    ;;
+  start-ubi )
+    if [ "$2" == "--help" ] || [ "$2" == "-h" ]; then
+      if [ "$OPENC3_DEVEL" -eq 1 ]; then
+        echo "Usage: $0 start-ubi"
+        echo ""
+        echo "Build and run OpenC3 UBI containers."
+        echo ""
+        echo "This command:"
+        echo "  1. Builds all OpenC3 UBI containers (equivalent to 'openc3.sh build-ubi')"
+        echo "  2. Starts all UBI containers (equivalent to 'openc3.sh run-ubi')"
+        echo ""
+        echo "Options:"
+        echo "  -h, --help    Show this help message"
+      else
+        echo "Usage: $0 start-ubi"
+        echo ""
+        echo "Run all OpenC3 UBI containers in detached mode."
+        echo ""
+        echo "This is an alias for 'run-ubi' command."
+        echo ""
+        echo "Options:"
+        echo "  -h, --help    Show this help message"
+      fi
+      exit 0
+    fi
+    if [ "$OPENC3_DEVEL" -eq 1 ]; then
+      "$0" build-ubi
+      "$0" run-ubi
+    else
+      "$0" run-ubi
+    fi
+    ;;
   stop )
     if [ "$2" == "--help" ] || [ "$2" == "-h" ]; then
       echo "Usage: $0 stop"
@@ -268,7 +399,89 @@ case $1 in
       cd ../..
     fi
     ;;
-  start | run )
+  build )
+    if [ "$OPENC3_DEVEL" -eq 0 ]; then
+      echo "Error: 'build' command is only available in development environments"
+      echo "This appears to be a runtime-only installation."
+      exit 1
+    fi
+    if [ "$2" == "--help" ] || [ "$2" == "-h" ]; then
+      echo "Usage: $0 build"
+      echo ""
+      echo "Build all OpenC3 docker containers."
+      echo ""
+      echo "This command:"
+      echo "  1. Runs setup to download certificates"
+      echo "  2. Builds openc3-ruby base image"
+      echo "  3. Builds openc3-base image"
+      echo "  4. Builds openc3-node image"
+      echo "  5. Builds all remaining service containers"
+      echo ""
+      echo "Options:"
+      echo "  -h, --help    Show this help message"
+      exit 0
+    fi
+    # Change to cosmos directory since openc3_setup.sh uses relative paths
+    cd "$(dirname -- "$0")"
+    "$(find_script openc3_setup.sh)"
+    # Handle restrictive umasks - Built files need to be world readable
+    umask 0022
+    chmod -R +r "$(dirname -- "$0")"
+    ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" -f "$(dirname -- "$0")/compose-build.yaml" build openc3-ruby
+    ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" -f "$(dirname -- "$0")/compose-build.yaml" build openc3-base
+    ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" -f "$(dirname -- "$0")/compose-build.yaml" build openc3-node
+    ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" -f "$(dirname -- "$0")/compose-build.yaml" build
+    ;;
+  build-ubi )
+    if [ "$OPENC3_DEVEL" -eq 0 ]; then
+      echo "Error: 'build-ubi' command is only available in development environments"
+      echo "This appears to be a runtime-only installation."
+      exit 1
+    fi
+    if [ "$2" == "--help" ] || [ "$2" == "-h" ]; then
+      echo "Usage: $0 build-ubi"
+      echo ""
+      echo "Build all OpenC3 UBI (Universal Base Image) containers."
+      echo ""
+      echo "This is used for enterprise deployments requiring Red Hat UBI base images,"
+      echo "suitable for air-gapped and government environments."
+      echo ""
+      echo "Required environment variables (set in .env file):"
+      echo "  OPENC3_UBI_REGISTRY      UBI registry URL"
+      echo "  OPENC3_UBI_IMAGE         UBI image name"
+      echo "  OPENC3_UBI_TAG           UBI image tag"
+      echo "  OPENC3_REGISTRY          Target registry for built images"
+      echo "  OPENC3_NAMESPACE         Target namespace"
+      echo "  OPENC3_TAG               Tag for built images"
+      echo ""
+      echo "Optional environment variables:"
+      echo "  RUBYGEMS_URL             RubyGems mirror URL (for air-gapped)"
+      echo "  PYPI_URL                 PyPI mirror URL (for air-gapped)"
+      echo "  NPM_URL                  NPM registry URL (for air-gapped)"
+      echo ""
+      echo "This command:"
+      echo "  1. Sources .env file for configuration"
+      echo "  2. Copies CA certificates if available"
+      echo "  3. Runs openc3_setup.sh"
+      echo "  4. Builds all UBI-based containers"
+      echo ""
+      echo "Options:"
+      echo "  -h, --help    Show this help message"
+      exit 0
+    fi
+    # Change to cosmos directory since scripts use relative paths
+    cd "$(dirname -- "$0")"
+    set -a
+    . "$(dirname -- "$0")/.env"
+    if test -f /etc/ssl/certs/ca-bundle.crt
+    then
+      cp /etc/ssl/certs/ca-bundle.crt "$(dirname -- "$0")/cacert.pem"
+    fi
+    "$(find_script openc3_setup.sh)"
+    "$(find_script openc3_build_ubi.sh)"
+    set +a
+    ;;
+  run )
     if [ "$2" == "--help" ] || [ "$2" == "-h" ]; then
       echo "Usage: $0 run"
       echo ""
@@ -298,7 +511,7 @@ case $1 in
     check_root
     ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" up -d
     ;;
-  start-ubi | run-ubi )
+  run-ubi )
     if [ "$2" == "--help" ] || [ "$2" == "-h" ]; then
       echo "Usage: $0 run-ubi"
       echo ""
@@ -368,7 +581,12 @@ case $1 in
     "$(find_script openc3_test.sh)" "${@:2}"
     ;;
   upgrade )
-    scripts/linux/openc3_upgrade.sh "${@:2}"
+    if [ "$OPENC3_DEVEL" -eq 1 ]; then
+      echo "Error: 'upgrade' command is only available in runtime environments"
+      echo "This appears to be a development installation."
+      exit 1
+    fi
+    "$(find_script openc3_upgrade.sh)" "${@:2}"
     ;;
   util )
     if [ "$2" == "--help" ] || [ "$2" == "-h" ] || [ "$#" -eq 1 ]; then

@@ -15,7 +15,10 @@ cp ../cosmos/openc3-traefik/traefik.yaml openc3-traefik/.
 cp ../cosmos/plugins/README.md plugins/.
 cp ../cosmos/plugins/DEFAULT/README.md plugins/DEFAULT/.
 cp ../cosmos/scripts/linux/openc3_util.sh scripts/linux/.
+cp ../cosmos/scripts/linux/openc3_upgrade.sh scripts/linux/.
 cp ../cosmos/scripts/windows/openc3_util.bat scripts/windows/.
+cp ../cosmos/scripts/windows/openc3_upgrade.bat scripts/windows/.
 cp ../cosmos/.env .
-
-echo "Must manually sync applicable parts of openc3.sh and openc3.bat"
+cp ../cosmos/openc3.sh .
+cp ../cosmos/openc3.bat .
+cp ../cosmos/_zshrc .
