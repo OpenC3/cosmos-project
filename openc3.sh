@@ -156,9 +156,6 @@ EOF
 EOF
   if [ "$OPENC3_DEVEL" -eq 1 ]; then
     cat >&2 << EOF
-EOF
-  if [ "$OPENC3_DEVEL" -eq 1 ]; then
-    cat >&2 << EOF
 DEVELOPMENT COMMANDS:
   build                 Build all $COSMOS_NAME Docker containers from source
                         Required before first run or after code changes.
@@ -194,20 +191,12 @@ CLEANUP:
 EOF
   if [ "$OPENC3_DEVEL" -eq 1 ]; then
     cat >&2 << EOF
-EOF
-  if [ "$OPENC3_DEVEL" -eq 1 ]; then
-    cat >&2 << EOF
 REDHAT:
-  start-ubi             Build and run with Red Hat UBI images
-  build-ubi             Build containers using UBI base images
   start-ubi             Build and run with Red Hat UBI images
   build-ubi             Build containers using UBI base images
   run-ubi               Run containers with UBI images
                         For air-gapped or government environments.
 
-EOF
-  fi
-  cat >&2 << EOF
 EOF
   fi
   cat >&2 << EOF
@@ -619,7 +608,6 @@ case $1 in
     ${DOCKER_COMPOSE_COMMAND} -f "$(dirname -- "$0")/compose.yaml" up -d
     ;;
   run-ubi )
-  run-ubi )
     if [ "$2" == "--help" ] || [ "$2" == "-h" ]; then
       echo "Usage: $0 run-ubi"
       echo ""
@@ -689,12 +677,6 @@ case $1 in
     "$(find_script openc3_test.sh)" "${@:2}"
     ;;
   upgrade )
-    if [ "$OPENC3_DEVEL" -eq 1 ]; then
-      echo "Error: 'upgrade' command is only available in runtime environments"
-      echo "This appears to be a development installation."
-      exit 1
-    fi
-    "$(find_script openc3_upgrade.sh)" "${@:2}"
     if [ "$OPENC3_DEVEL" -eq 1 ]; then
       echo "Error: 'upgrade' command is only available in runtime environments"
       echo "This appears to be a development installation."

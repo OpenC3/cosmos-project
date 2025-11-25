@@ -75,7 +75,6 @@ if "%1" == "cliroot" (
 )
 if "%1" == "start" (
   GOTO startup
-  GOTO startup
 )
 if "%1" == "stop" (
   GOTO stop
