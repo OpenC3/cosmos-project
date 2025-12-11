@@ -21,4 +21,4 @@ cp ../cosmos/scripts/windows/openc3_upgrade.bat scripts/windows/.
 cp ../cosmos/.env .
 cp ../cosmos/openc3.sh .
 cp ../cosmos/openc3.bat .
-cp ../cosmos/_zshrc .
+cp ../cosmos/_openc3 .
