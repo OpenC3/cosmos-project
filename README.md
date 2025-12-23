@@ -43,6 +43,10 @@ See [Upgrading](https://docs.openc3.com/docs/getting-started/upgrading) for more
 1. Edit .env and change:
    1. SECRET_KEY_BASE
    2. OPENC3_SERVICE_PASSWORD
+   3. OPENC3_REDIS_PASSWORD
+   4. OPENC3_BUCKET_PASSWORD
+   5. OPENC3_SR_REDIS_PASSWORD
+   6. OPENC3_SR_BUCKET_PASSWORD
 2. Edit ./openc3-redis/users.acl and change the password for each account. Note passwords for openc3/scriptrunner must match the REDIS passwords in the .env file:
    1. openc3
    2. admin
