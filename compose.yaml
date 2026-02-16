@@ -3,34 +3,25 @@
 # Copyright 2022 Ball Aerospace & Technologies Corp.
 # All Rights Reserved.
 #
-# This program is free software; you can modify and/or redistribute it
-# under the terms of the GNU Affero General Public License
-# as published by the Free Software Foundation; version 3 with
-# attribution addendums as found in the LICENSE.txt
-#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE.md for more details.
 
 # Modified by OpenC3, Inc.
-# All changes Copyright 2025, OpenC3, Inc.
+# All changes Copyright 2026, OpenC3, Inc.
 # All Rights Reserved
 #
 # This file may also be used under the terms of a commercial license
 # if purchased from OpenC3, Inc.
 
 services:
-  openc3-minio:
+  openc3-buckets:
     user: "${OPENC3_USER_ID:-1001}:${OPENC3_GROUP_ID:-1001}"
-    image: "${OPENC3_REGISTRY}/${OPENC3_NAMESPACE}/openc3-minio${OPENC3_IMAGE_SUFFIX}:${OPENC3_TAG}"
-    # Uncomment to run unit tests against the minio server
-    # ports:
-    #   - "127.0.0.1:9000:9000"
+    image: "${OPENC3_REGISTRY}/${OPENC3_NAMESPACE}/openc3-buckets${OPENC3_IMAGE_SUFFIX}:${OPENC3_TAG}"
     volumes:
-      - "openc3-bucket-v:/data"
+      - "openc3-object-v:/data"
       - "./cacert.pem:/devel/cacert.pem:z"
-    command: server --address ":9000" --console-address ":9001" /data
     restart: "unless-stopped"
     logging:
       driver: "json-file"
@@ -38,43 +29,54 @@ services:
         max-size: "10m"
         max-file: "3"
     environment:
-      MINIO_ROOT_USER: "${OPENC3_BUCKET_USERNAME}"
-      MINIO_ROOT_PASSWORD: "${OPENC3_BUCKET_PASSWORD}"
-      # Domain doesn't really matter but it's required. We really want the /minio path.
-      # This is handled by our traefik configuration via rule: PathPrefix(`/minio`)
-      # and forwarded on to the console at http://openc3-minio:9001
-      MINIO_BROWSER_REDIRECT_URL: "http://openc3.com/minio"
+      ROOT_ACCESS_KEY: "${OPENC3_BUCKET_USERNAME}"
+      ROOT_SECRET_KEY: "${OPENC3_BUCKET_PASSWORD}"
+      OPENC3_SR_BUCKET_USERNAME: "${OPENC3_SR_BUCKET_USERNAME}"
+      OPENC3_SR_BUCKET_PASSWORD: "${OPENC3_SR_BUCKET_PASSWORD}"
       SSL_CERT_FILE: "/devel/cacert.pem"
       CURL_CA_BUNDLE: "/devel/cacert.pem"
       REQUESTS_CA_BUNDLE: "/devel/cacert.pem"
       NODE_EXTRA_CA_CERTS: "/devel/cacert.pem"
+    healthcheck:
+      # Test that S3-compatible storage (versitygw) is responding on port 9000
+      # A 403 Forbidden response means the server is healthy and responding
+      test: ["CMD-SHELL", "wget -O- http://localhost:9000/ 2>&1 | grep -q 'Forbidden' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
-  # Uncomment to use QuestDB as the time series database
-  # Also uncomment the openc3-tsdb-v volume in the volumes section
-  # Also uncomment the OPENC3_TSDB_XXX env vars in the .env file
-  # openc3-tsdb:
-  #   image: "${OPENC3_REGISTRY}/${OPENC3_NAMESPACE}/openc3-tsdb${OPENC3_IMAGE_SUFFIX}:${OPENC3_TAG}"
-  #   ports:
-  #     # You should disable the QuestDB Console in production
-  #     # as it gives unlimited access to the database
-  #     - "127.0.0.1:9000:9000" # OPENC3_TSDB_INGEST_PORT & QuestDB Console
-  #     # The Postgresql port doesn't typically need to be exposed to the host
-  #     # but if you have external software that needs to connect to QuestDB
-  #     # you can uncomment the following line to expose it.
-  #     # - "127.0.0.1:8812:8812" # OPENC3_TSDB_QUERY_PORT
-  #   volumes:
-  #     - "openc3-tsdb-v:/var/lib/questdb"
-  #   restart: "unless-stopped"
-  #   logging:
-  #     driver: "json-file"
-  #     options:
-  #       max-size: "10m"
-  #       max-file: "3"
-  #   environment:
-  #     QDB_PG_USER: "${OPENC3_TSDB_USERNAME}"
-  #     QDB_PG_PASSWORD: "${OPENC3_TSDB_PASSWORD}"
-  #     QDB_HTTP_USER: "${OPENC3_TSDB_USERNAME}"
-  #     QDB_HTTP_PASSWORD: "${OPENC3_TSDB_PASSWORD}"
+  openc3-tsdb:
+    image: "${OPENC3_REGISTRY}/${OPENC3_NAMESPACE}/openc3-tsdb${OPENC3_IMAGE_SUFFIX}:${OPENC3_TAG}"
+    # ports:
+    #   # This gives complete access to the QuestDB instance, which is useful for testing and development.
+    #   - "127.0.0.1:9000:9000" # OPENC3_TSDB_INGEST_PORT & QuestDB Console
+    #   - "127.0.0.1:9003:9003" # QuestDB health endpoint
+    #   # The Postgresql port doesn't typically need to be exposed to the host
+    #   # but if you have external software that needs to connect to QuestDB
+    #   # you can uncomment the following line to expose it.
+    #   - "127.0.0.1:8812:8812" # OPENC3_TSDB_QUERY_PORT
+    volumes:
+      - "openc3-tsdb-v:/var/lib/questdb"
+    restart: "unless-stopped"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      QDB_PG_USER: "${OPENC3_TSDB_USERNAME}"
+      QDB_PG_PASSWORD: "${OPENC3_TSDB_PASSWORD}"
+      QDB_HTTP_USER: "${OPENC3_TSDB_USERNAME}"
+      QDB_HTTP_PASSWORD: "${OPENC3_TSDB_PASSWORD}"
+    healthcheck:
+      # Test that QuestDB can actually execute queries via the REST API
+      # This verifies both the HTTP server and the database engine are working
+      test: ["CMD-SHELL", "curl -f -u \"$${QDB_HTTP_USER}:$${QDB_HTTP_PASSWORD}\" 'http://localhost:9000/exec?query=SELECT+1' | grep -q '\"query\":\"SELECT 1\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   openc3-redis:
     user: "${OPENC3_USER_ID:-1001}:${OPENC3_GROUP_ID:-1001}"
@@ -94,6 +96,14 @@ services:
       CURL_CA_BUNDLE: "/devel/cacert.pem"
       REQUESTS_CA_BUNDLE: "/devel/cacert.pem"
       NODE_EXTRA_CA_CERTS: "/devel/cacert.pem"
+    healthcheck:
+      # Test Redis with PING command - use default connection (no auth in healthcheck)
+      # Redis will respond with NOAUTH if it's running, which is sufficient for health
+      test: ["CMD-SHELL", "redis-cli ping 2>&1 | grep -E 'PONG|NOAUTH' || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
 
   openc3-redis-ephemeral:
     user: "${OPENC3_USER_ID:-1001}:${OPENC3_GROUP_ID:-1001}"
@@ -114,6 +124,14 @@ services:
       CURL_CA_BUNDLE: "/devel/cacert.pem"
       REQUESTS_CA_BUNDLE: "/devel/cacert.pem"
       NODE_EXTRA_CA_CERTS: "/devel/cacert.pem"
+    healthcheck:
+      # Test ephemeral Redis with PING command on port 6380
+      # Redis will respond with NOAUTH if it's running, which is sufficient for health
+      test: ["CMD-SHELL", "redis-cli -p 6380 ping 2>&1 | grep -E 'PONG|NOAUTH' || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
 
   openc3-cosmos-cmd-tlm-api:
     user: "${OPENC3_USER_ID:-1001}:${OPENC3_GROUP_ID:-1001}"
@@ -122,7 +140,7 @@ services:
     depends_on:
       - "openc3-redis"
       - "openc3-redis-ephemeral"
-      - "openc3-minio"
+      - "openc3-buckets"
     volumes:
       - "openc3-gems-v:/gems"
       - "./plugins:/plugins:z"
@@ -136,11 +154,6 @@ services:
       RAILS_ENV: "production"
       GEM_HOME: "/gems"
       PYTHONUSERBASE: "/gems/python_packages"
-      OPENC3_REDIS_USERNAME: "${OPENC3_REDIS_USERNAME}"
-      OPENC3_REDIS_PASSWORD: "${OPENC3_REDIS_PASSWORD}"
-      OPENC3_BUCKET_USERNAME: "${OPENC3_BUCKET_USERNAME}"
-      OPENC3_BUCKET_PASSWORD: "${OPENC3_BUCKET_PASSWORD}"
-      OPENC3_SERVICE_PASSWORD: "${OPENC3_SERVICE_PASSWORD}"
       ANYCABLE_REDIS_URL: "redis://${OPENC3_REDIS_USERNAME}:${OPENC3_REDIS_PASSWORD}@${OPENC3_REDIS_HOSTNAME}:${OPENC3_REDIS_PORT}"
     env_file:
       - .env
@@ -154,7 +167,7 @@ services:
     depends_on:
       - "openc3-redis"
       - "openc3-redis-ephemeral"
-      - "openc3-minio"
+      - "openc3-buckets"
     volumes:
       - "openc3-gems-v:/gems:ro"
       - "./plugins:/plugins:z"
@@ -168,15 +181,6 @@ services:
       RAILS_ENV: "production"
       GEM_HOME: "/gems"
       PYTHONUSERBASE: "/gems/python_packages"
-      OPENC3_REDIS_USERNAME: "${OPENC3_REDIS_USERNAME}"
-      OPENC3_REDIS_PASSWORD: "${OPENC3_REDIS_PASSWORD}"
-      OPENC3_BUCKET_USERNAME: "${OPENC3_BUCKET_USERNAME}"
-      OPENC3_BUCKET_PASSWORD: "${OPENC3_BUCKET_PASSWORD}"
-      OPENC3_SR_REDIS_USERNAME: "${OPENC3_SR_REDIS_USERNAME}"
-      OPENC3_SR_REDIS_PASSWORD: "${OPENC3_SR_REDIS_PASSWORD}"
-      OPENC3_SR_BUCKET_USERNAME: "${OPENC3_SR_BUCKET_USERNAME}"
-      OPENC3_SR_BUCKET_PASSWORD: "${OPENC3_SR_BUCKET_PASSWORD}"
-      OPENC3_SERVICE_PASSWORD: "${OPENC3_SERVICE_PASSWORD}"
       ANYCABLE_REDIS_URL: "redis://${OPENC3_REDIS_USERNAME}:${OPENC3_REDIS_PASSWORD}@${OPENC3_REDIS_HOSTNAME}:${OPENC3_REDIS_PORT}"
     env_file:
       - .env
@@ -191,7 +195,7 @@ services:
     depends_on:
       - "openc3-redis"
       - "openc3-redis-ephemeral"
-      - "openc3-minio"
+      - "openc3-buckets"
     volumes:
       - "openc3-gems-v:/gems:ro"
       - "./plugins:/plugins:z"
@@ -210,14 +214,9 @@ services:
       # CI in set in Github actions, changes the Demo TLM_LOG_CYCLE_TIME
       # By not setting a value it pases the environment variable from the shell
       # straight to the container and doesn't complain if CI is not set
-      - CI
-      - GEM_HOME=/gems
-      - PYTHONUSERBASE=/gems/python_packages
-      - OPENC3_REDIS_USERNAME=${OPENC3_REDIS_USERNAME}
-      - OPENC3_REDIS_PASSWORD=${OPENC3_REDIS_PASSWORD}
-      - OPENC3_BUCKET_USERNAME=${OPENC3_BUCKET_USERNAME}
-      - OPENC3_BUCKET_PASSWORD=${OPENC3_BUCKET_PASSWORD}
-      - OPENC3_SERVICE_PASSWORD=${OPENC3_SERVICE_PASSWORD}
+      CI: "true"
+      GEM_HOME: "/gems"
+      PYTHONUSERBASE: "/gems/python_packages"
     env_file:
       - .env
     extra_hosts:
@@ -243,7 +242,7 @@ services:
     depends_on:
       - "openc3-redis"
       - "openc3-redis-ephemeral"
-      - "openc3-minio"
+      - "openc3-buckets"
     logging:
       driver: "json-file"
       options:
@@ -254,6 +253,13 @@ services:
       CURL_CA_BUNDLE: "/devel/cacert.pem"
       REQUESTS_CA_BUNDLE: "/devel/cacert.pem"
       NODE_EXTRA_CA_CERTS: "/devel/cacert.pem"
+    healthcheck:
+      # Test that Traefik process is running - ping endpoint is not configured
+      test: ["CMD-SHELL", "pgrep traefik || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
 
   openc3-cosmos-init:
     user: "${OPENC3_USER_ID:-1001}:${OPENC3_GROUP_ID:-1001}"
@@ -263,7 +269,7 @@ services:
       - "openc3-traefik"
       - "openc3-redis"
       - "openc3-redis-ephemeral"
-      - "openc3-minio"
+      - "openc3-buckets"
     volumes:
       - "openc3-gems-v:/gems"
       - "./plugins:/plugins:z"
@@ -277,21 +283,15 @@ services:
       # CI in set in Github actions, changes the Demo TLM_LOG_CYCLE_TIME
       # By not setting a value it pases the environment variable from the shell
       # straight to the container and doesn't complain if CI is not set
-      - CI
-      - GEM_HOME=/gems
-      - PYTHONUSERBASE=/gems/python_packages
-      - OPENC3_REDIS_USERNAME=${OPENC3_REDIS_USERNAME}
-      - OPENC3_REDIS_PASSWORD=${OPENC3_REDIS_PASSWORD}
-      - OPENC3_BUCKET_USERNAME=${OPENC3_BUCKET_USERNAME}
-      - OPENC3_BUCKET_PASSWORD=${OPENC3_BUCKET_PASSWORD}
-      - OPENC3_SR_BUCKET_USERNAME=${OPENC3_SR_BUCKET_USERNAME}
-      - OPENC3_SR_BUCKET_PASSWORD=${OPENC3_SR_BUCKET_PASSWORD}
+      CI: "true"
+      GEM_HOME: "/gems"
+      PYTHONUSERBASE: "/gems/python_packages"
     env_file:
       - .env
 
 volumes:
-  # openc3-tsdb-v: {}
+  openc3-tsdb-v: {}
   openc3-redis-v: {}
   openc3-redis-ephemeral-v: {}
-  openc3-bucket-v: {}
+  openc3-object-v: {}
   openc3-gems-v: {}
