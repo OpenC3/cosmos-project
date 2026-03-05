@@ -40,6 +40,8 @@ See [Upgrading](https://docs.openc3.com/docs/getting-started/upgrading) for more
 
 ## Change all default credentials and secrets
 
+For detailed explanations of all COSMOS credentials and security best practices, see the [Security documentation](https://docs.openc3.com/docs/getting-started/security).
+
 1. Edit .env and change:
    1. SECRET_KEY_BASE
    2. OPENC3_SERVICE_PASSWORD
