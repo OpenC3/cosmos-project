@@ -62,16 +62,16 @@ Warning: These directions only work when exposing COSMOS to the internet. Make s
 
 Warning: This is not recommended except for temporary testing on a local network. This will send plain text passwords over the network!
 
-1. Edit compose.yaml
-   1. Comment out this openc3-traefik line: `./openc3-traefik/traefik.yaml:/etc/traefik/traefik.yaml:z`
-   2. Uncomment this openc3-traefik line: `./openc3-traefik/traefik-allow-http.yaml:/etc/traefik/traefik.yaml`
-   3. Modify this openc3-traefik line to remove the ip address and optionally modify the first port number if desired **(Note: leave the last :2900)**: `127.0.0.1:2900:2900`
-2. Start OpenC3
+1. Edit .env
+   1. Uncomment OPENC3_ALLOW_HTTP=1
+2. Edit compose.yaml
+   1. Modify this openc3-traefik line to remove the ip address and optionally modify the first port number if desired **(Note: leave the last :2900)**: `127.0.0.1:2900:2900`
+3. Start OpenC3
    - On Linux/Mac: ./openc3.sh run
    - On Windows: openc3.bat run
-3. In the Chrome Browser go to: chrome://flags/#unsafely-treat-insecure-origin-as-secure or Edge go to: edge://flags/#unsafely-treat-insecure-origin-as-secure
+4. In the Chrome Browser go to: chrome://flags/#unsafely-treat-insecure-origin-as-secure or Edge go to: edge://flags/#unsafely-treat-insecure-origin-as-secure
    1. Add your `http://<Your IP Address>:2900`
    2. Enable the Setting
    3. Completely restart Chrome. On MacOS make sure the dot below the icon in chrome is gone by long pressing the icon and choosing Quit.
-4. After approximately 2 minutes, open a web browser to `http://<Your IP Address>:2900` (or different port if changed above)
+5. After approximately 2 minutes, open a web browser to `http://<Your IP Address>:2900` (or different port if changed above)
    - If you run "docker ps", you can watch until the openc3-cosmos-init container completes, at which point the system should be fully configured and ready to use.
