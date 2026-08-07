@@ -3,6 +3,7 @@
 set -e
 
 cp ../cosmos/compose.yaml .
+cp ../cosmos/compose.override.yaml .
 cp ../cosmos/LICENSE.md .
 cp ../cosmos/cacert.pem .
 cp ../cosmos/openc3-redis/users.acl openc3-redis/.
