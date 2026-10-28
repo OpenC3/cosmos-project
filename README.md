@@ -16,13 +16,13 @@ This git repo is used as a starting point for running and configuring OpenC3 COS
    - If you run "docker ps", you can watch until the openc3-cosmos-init container completes, at which point the system should be fully configured and ready to use.
 
 > [!IMPORTANT]
-> Before exposing COSMOS to the network please read the [Opening to the Network](./NetworkConfiguration.md) document.
+> Before exposing COSMOS to the network please read the [Network Configuration](https://docs.openc3.com/docs/guides/network-configuration) guide.
 >
 
 ## Run without the Demo project
 
-1. Edit .env and remove the OPENC3_DEMO line
-2. If you have already ran with the demo also uninstall the demo plugin from the Admin tool.
+1. Add `OPENC3_DEMO=false` to a `.env.local` file next to `.env` (create it if needed). Don't edit `.env` itself; it ships the upstream defaults and edits conflict when you upgrade.
+2. If you have already run with the demo, also uninstall the demo plugin from the Admin tool.
 
 ## Upgrade to a Specific Version
 
@@ -42,21 +42,29 @@ See [Upgrading](https://docs.openc3.com/docs/getting-started/upgrading) for more
 
 For detailed explanations of all COSMOS credentials and security best practices, see the [Security documentation](https://docs.openc3.com/docs/getting-started/security).
 
-1. Edit .env and change:
-   1. SECRET_KEY_BASE
+Don't edit `.env` or `compose.yaml`. They ship the upstream defaults, so edits conflict when you upgrade COSMOS. Put secrets in a `.env.local` file next to `.env` instead: it is gitignored and loaded after `.env`, so its values win. Never put secrets in `compose.override.yaml`, which is tracked by git.
+
+1. Create `.env.local` and set new values for:
+   1. SECRET_KEY_BASE (generate one with `openssl rand -hex 64`)
    2. OPENC3_SERVICE_PASSWORD
    3. OPENC3_REDIS_PASSWORD
    4. OPENC3_BUCKET_PASSWORD
    5. OPENC3_SR_REDIS_PASSWORD
    6. OPENC3_SR_BUCKET_PASSWORD
-2. Edit ./openc3-redis/users.acl and change the password for each account. Note passwords for openc3/scriptrunner must match the REDIS passwords in the .env file:
+   7. OPENC3_TSDB_PASSWORD
+2. Edit ./openc3-redis/users.acl and change the password for each account. Note passwords for openc3/scriptrunner must match the REDIS passwords in your `.env.local` file:
    1. openc3
    2. admin
    3. scriptrunner
-3. Edit any passwords in compose.yaml
 
 Passwords stored in `./openc3-redis/users.acl` use a sha256 hash.
 To generate a new hash use the following method, and then copy / paste into users.acl
+
+```bash
+./openc3.sh util hash 'adminpassword'
+```
+
+or
 
 ```bash
 echo -n 'adminpassword' | openssl dgst -sha256
@@ -65,4 +73,5 @@ SHA2-256(stdin)= 749f09bade8aca755660eeb17792da880218d4fbdc4e25fbec279d7fe9f65d7
 
 ## Documentation
 
-- [Opening to the Network](./NetworkConfiguration.md) - Open COSMOS to the network with SSL/TLS
+- [Network Configuration](https://docs.openc3.com/docs/guides/network-configuration) - Open COSMOS to the network with HTTPS or HTTP
+- [SSL-TLS](https://docs.openc3.com/docs/configuration/ssl-tls) - Configure HTTPS with your own or Let's Encrypt certificates
